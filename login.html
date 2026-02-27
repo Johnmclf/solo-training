@@ -61,7 +61,7 @@
       </div>
       <div id="error-msg"></div>
       <button class="btn btn-primary" style="width:100%; margin-top:0.5rem;" onclick="doLogin()">
-        <span>⚔</span> Accéder au Système
+        <span></span> Accéder au Système
       </button>
     </div>
 
@@ -118,7 +118,7 @@ function showPenaltyModal(log, days) {
 
       <div style="text-align:center; margin-bottom:2rem;">
         <div style="font-family:var(--font-mono);font-size:0.65rem;letter-spacing:3px;color:rgba(239,68,68,0.6);margin-bottom:0.8rem;">[ SYSTÈME — PÉNALITÉ ]</div>
-        <div style="font-size:2.8rem; margin-bottom:0.8rem; filter:drop-shadow(0 0 12px rgba(239,68,68,0.5))">💀</div>
+        <div style="font-size:2.8rem; margin-bottom:0.8rem; filter:drop-shadow(0 0 12px rgba(239,68,68,0.5))"></div>
         <div style="font-family:var(--font-display);font-size:1.3rem;font-weight:900;color:var(--red);letter-spacing:3px;text-shadow:0 0 20px rgba(239,68,68,0.5);">ABSENCE DÉTECTÉE</div>
         <div style="font-family:var(--font-mono);font-size:0.78rem;color:var(--text-muted);margin-top:6px;">
           ${days} jour${days>1?'s':''} sans activité enregistrée
@@ -147,7 +147,7 @@ function showPenaltyModal(log, days) {
       </div>
 
       <button class="btn btn-primary" style="width:100%;" onclick="document.querySelector('.modal-overlay').remove(); window.location.href='home.html'">
-        <span>⚔</span> Accepter et reprendre l'ascension
+        <span></span> Accepter et reprendre l'ascension
       </button>
     </div>
   `;
