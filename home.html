@@ -340,7 +340,7 @@ function refreshUI() {
   // Welcome
   document.getElementById('welcome-name').textContent = user.displayName;
   const now = new Date();
-  document.getElementById('today-date').textContent = `// ${now.toLocaleDateString('fr-FR', {weekday:'long', year:'numeric', month:'long', day:'numeric'})}`;
+  document.getElementById('today-date').textContent = `${now.toLocaleDateString('fr-FR', {weekday:'long', year:'numeric', month:'long', day:'numeric'})}`;
 
   // Combo
   document.getElementById('combo-val').textContent = parseFloat(user.combo).toFixed(2);
