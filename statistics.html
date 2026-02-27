@@ -274,7 +274,7 @@ function renderRankJourney(user) {
     const colors = {E:'var(--rank-e)',D:'var(--rank-d)',C:'var(--rank-c)',B:'var(--rank-b)',A:'var(--rank-a)',S:'var(--rank-s)'};
     html += `<div class="rank-step">
       <div class="rank-step-badge ${isActive?'active':''}${achieved&&!isActive?' achieved':''}" style="color:${colors[rk.r]};border-color:${colors[rk.r]}">${rk.r}</div>
-      <div class="rank-step-pts">${rk.pts >= 10000 ? '10K' : rk.pts}</div>
+      <div class="rank-step-pts">${rk.pts >= 1000000 ? (rk.pts/1000000).toFixed(0)+'M' : rk.pts >= 1000 ? (rk.pts/1000).toFixed(0)+'K' : rk.pts}</div>
     </div>`;
     if (i < ranks.length - 1) {
       html += `<div class="rank-connector ${achieved ? 'done' : ''}"></div>`;
