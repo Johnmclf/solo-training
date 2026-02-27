@@ -1,4 +1,4 @@
-// ===== SOLO TRAINING SYSTEM — UI / NOTIFICATIONS =====
+// ===== SOLO SPORT SYSTEM — UI / NOTIFICATIONS =====
 
 /**
  * Show a Solo Leveling "System" toast notification.
@@ -142,4 +142,39 @@ function toastPenalty(days, ptsLost) {
     `-${ptsLost} PTS · COMBO RESET`,
     5000
   );
+}
+
+
+// ===== MODAL DE CONFIRMATION STYLISÉ =====
+/**
+ * Remplace window.confirm() avec le style Solo Leveling.
+ * @param {string} title   Titre principal
+ * @param {string} desc    Description / détail
+ * @param {string} pts     Ligne points (ex: "-150 PTS DÉDUITS")
+ * @returns {Promise<boolean>}
+ */
+function showConfirm(title, desc, pts = '') {
+  return new Promise(resolve => {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay';
+    overlay.innerHTML = `
+      <div class="modal" style="max-width:400px;">
+        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--red),transparent);"></div>
+        <div style="text-align:center;margin-bottom:1.5rem;">
+          <div style="font-family:var(--font-mono);font-size:0.6rem;letter-spacing:3px;color:rgba(239,68,68,0.5);margin-bottom:0.8rem;">[ SYSTÈME — CONFIRMATION ]</div>
+          <div style="font-family:var(--font-display);font-size:1.1rem;font-weight:700;color:var(--text-primary);letter-spacing:2px;">${title}</div>
+          ${desc ? `<div style="font-family:var(--font-mono);font-size:0.8rem;color:var(--text-muted);margin-top:6px;">${desc}</div>` : ''}
+          ${pts ? `<div style="font-family:var(--font-display);font-size:1.1rem;font-weight:700;color:var(--red);margin-top:10px;text-shadow:0 0 15px rgba(239,68,68,0.4);">${pts}</div>` : ''}
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn-ghost" style="flex:1;" id="confirm-cancel">Annuler</button>
+          <button class="btn btn-danger" style="flex:1;background:rgba(239,68,68,0.15);border-color:rgba(239,68,68,0.6);" id="confirm-ok">Confirmer</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#confirm-ok').onclick = () => { overlay.remove(); resolve(true); };
+    overlay.querySelector('#confirm-cancel').onclick = () => { overlay.remove(); resolve(false); };
+    overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.remove(); resolve(false); } });
+  });
 }

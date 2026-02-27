@@ -96,6 +96,7 @@
 .heat-cell.success { background: rgba(34,197,94,0.5); }
 .heat-cell.partial { background: rgba(245,158,11,0.4); }
 .heat-cell.missed { background: rgba(239,68,68,0.3); }
+.heat-cell.active { background: rgba(99,102,241,0.5); border: 1px solid rgba(99,102,241,0.8); }
 .heat-cell.empty { background: transparent; }
 .heat-cell:hover::after {
   content: attr(data-tip);
@@ -136,7 +137,7 @@
   <div class="nav-user">
     <span class="nav-rank" id="nav-rank">E</span>
     <span style="font-family:var(--font-ui);font-size:0.9rem;color:var(--text-secondary)" id="nav-name">—</span>
-    <button class="btn-logout" onclick="logout()">Déco</button>
+    <button class="btn-logout" onclick="logout()">Exit</button>
   </div>
   <button class="nav-hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
     <span></span><span></span><span></span>
@@ -158,6 +159,18 @@
 
   <!-- RANK JOURNEY -->
   <div class="rank-journey" id="rank-journey"></div>
+
+  <!-- POINTS HERO -->
+  <div style="background:linear-gradient(135deg,var(--bg-card),rgba(99,102,241,0.1));border:1px solid var(--border-glow);border-radius:10px;padding:1.5rem 2rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+    <div>
+      <div style="font-family:var(--font-mono);font-size:0.65rem;letter-spacing:3px;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;">Points de Chasseur</div>
+      <div style="font-family:var(--font-display);font-size:2.8rem;font-weight:900;background:linear-gradient(135deg,var(--purple-bright),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;" id="stat-points">0</div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-family:var(--font-mono);font-size:0.65rem;letter-spacing:3px;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;">Rang Actuel</div>
+      <div style="font-family:var(--font-display);font-size:2.8rem;font-weight:900;line-height:1;" id="stat-rank-big">E</div>
+    </div>
+  </div>
 
   <!-- TOTAL STATS -->
   <div class="total-grid">
@@ -237,6 +250,7 @@
       <span><span style="display:inline-block;width:12px;height:12px;border-radius:2px;background:rgba(34,197,94,0.5);vertical-align:middle;margin-right:4px;"></span>Complet</span>
       <span><span style="display:inline-block;width:12px;height:12px;border-radius:2px;background:rgba(245,158,11,0.4);vertical-align:middle;margin-right:4px;"></span>Partiel</span>
       <span><span style="display:inline-block;width:12px;height:12px;border-radius:2px;background:rgba(239,68,68,0.3);vertical-align:middle;margin-right:4px;"></span>Manqué</span>
+      <span><span style="display:inline-block;width:12px;height:12px;border-radius:2px;background:rgba(99,102,241,0.5);border:1px solid rgba(99,102,241,0.8);vertical-align:middle;margin-right:4px;"></span>En cours</span>
     </div>
     <div class="heatmap-grid" id="heatmap"></div>
   </div>
@@ -284,9 +298,8 @@ function renderRankJourney(user) {
   container.innerHTML = html;
 }
 
-function renderHeatmap(history) {
+function renderHeatmap(history, user) {
   const hm = document.getElementById('heatmap');
-  // Build map of date -> status
   const map = {};
   history.forEach(h => {
     if (h.objPushups && h.objAbs) map[h.date] = 'success';
@@ -294,55 +307,86 @@ function renderHeatmap(history) {
     else map[h.date] = 'missed';
   });
 
-  // Last 28 days
-  const today = new Date();
+  // Inject today from live data
+  const today = getTodayStr();
+  if (user.todayPushups > 0 || user.todayAbs > 0) {
+    if (user.todayObjPushups && user.todayObjAbs) map[today] = 'success';
+    else if (user.todayObjPushups || user.todayObjAbs) map[today] = 'partial';
+    else map[today] = 'active';
+  }
+
+  const todayDate = new Date();
   const cells = [];
   for (let i = 27; i >= 0; i--) {
-    const d = new Date(today);
+    const d = new Date(todayDate);
     d.setDate(d.getDate() - i);
     const ds = d.toISOString().split('T')[0];
-    cells.push({date: ds, status: map[ds] || (i === 0 ? 'today' : 'empty')});
+    cells.push({date: ds, status: map[ds] || 'empty'});
   }
 
   hm.innerHTML = cells.map(c => {
-    const cls = c.status === 'today' ? 'heat-cell' : `heat-cell ${c.status}`;
-    return `<div class="${cls}" data-tip="${c.date}: ${c.status==='success'?'Complet':c.status==='partial'?'Partiel':c.status==='missed'?'Manqué':'Aucune donnée'}"></div>`;
+    const tipLabels = {success:'Complet', partial:'Partiel', missed:'Manqué', active:'En cours', empty:'Aucune donnée'};
+    const cls = `heat-cell${c.status !== 'empty' ? ' ' + c.status : ''}`;
+    return `<div class="${cls}" data-tip="${c.date}: ${tipLabels[c.status]||''}"></div>`;
   }).join('');
 }
 
-function renderHistory(history) {
+function renderHistory(history, user) {
   const cont = document.getElementById('history-content');
-  if (!history || history.length === 0) {
-    cont.innerHTML = '<div class="history-empty">Aucun historique encore. Continue à t\'entraîner !</div>';
+
+  // Build list with today injected at top
+  const today = getTodayStr();
+  const todayEntry = {
+    date: today,
+    pushups: user.todayPushups,
+    abs: user.todayAbs,
+    pullups: user.todayPullups,
+    weightKg: user.todayWeightKg,
+    objPushups: user.todayObjPushups,
+    objAbs: user.todayObjAbs,
+    pointsDelta: null,
+    today: true
+  };
+
+  const allEntries = (user.todayPushups > 0 || user.todayAbs > 0 || user.todayPullups > 0 || user.todayWeightKg > 0)
+    ? [todayEntry, ...(history || []).filter(h => h.date !== today)]
+    : (history || []);
+
+  const sorted = [...allEntries].sort((a,b) => b.date.localeCompare(a.date)).slice(0, 30);
+
+  if (sorted.length === 0) {
+    cont.innerHTML = '<div class="history-empty">Aucun historique encore. Commence ton entraînement !</div>';
     return;
   }
 
-  const sorted = [...history].sort((a,b) => b.date.localeCompare(a.date)).slice(0, 30);
   cont.innerHTML = `<div style="overflow-x:auto"><table class="data-table">
     <thead><tr>
-      <th>Date</th>
-      <th>Pompes</th>
-      <th>Abdos</th>
-      <th>Tractions</th>
-      <th>Poids</th>
-      <th>Statut</th>
-      <th>Points</th>
+      <th>Date</th><th>Pompes</th><th>Abdos</th><th>Tractions</th><th>Poids</th><th>Statut</th><th>Points</th>
     </tr></thead>
     <tbody>
     ${sorted.map(h => {
       let status = '';
-      if (h.objPushups && h.objAbs) status = '<span class="badge-small badge-green">COMPLET</span>';
-      else if (h.objPushups || h.objAbs) status = '<span class="badge-small badge-orange">PARTIEL</span>';
-      else status = '<span class="badge-small badge-red">MANQUÉ</span>';
-      const pts = h.pointsDelta > 0 ? `<span style="color:var(--green)">+${h.pointsDelta}</span>` : `<span style="color:var(--red)">${h.pointsDelta}</span>`;
+      if (h.today) {
+        if (h.objPushups && h.objAbs) status = '<span class="badge-small badge-green">COMPLET</span>';
+        else if (h.objPushups || h.objAbs) status = '<span class="badge-small badge-orange">PARTIEL</span>';
+        else status = '<span class="badge-small" style="background:rgba(99,102,241,0.15);color:var(--purple-bright);border:1px solid rgba(99,102,241,0.3)">EN COURS</span>';
+      } else {
+        if (h.objPushups && h.objAbs) status = '<span class="badge-small badge-green">COMPLET</span>';
+        else if (h.objPushups || h.objAbs) status = '<span class="badge-small badge-orange">PARTIEL</span>';
+        else status = '<span class="badge-small badge-red">MANQUÉ</span>';
+      }
+      const pts = h.pointsDelta === null
+        ? `<span style="color:var(--text-muted)">—</span>`
+        : h.pointsDelta > 0
+          ? `<span style="color:var(--green)">+${h.pointsDelta}</span>`
+          : `<span style="color:var(--red)">${h.pointsDelta}</span>`;
+      const dateLabel = h.today
+        ? `<span style="color:var(--purple-bright)">${h.date} <span style="font-size:0.65rem;opacity:0.6">AUJOURD'HUI</span></span>`
+        : `<span style="color:var(--text-secondary)">${h.date}</span>`;
       return `<tr>
-        <td style="color:var(--text-secondary)">${h.date}</td>
-        <td>${h.pushups || 0}</td>
-        <td>${h.abs || 0}</td>
-        <td>${h.pullups || 0}</td>
-        <td>${h.weightKg || 0} kg</td>
-        <td>${status}</td>
-        <td>${pts}</td>
+        <td>${dateLabel}</td>
+        <td>${h.pushups||0}</td><td>${h.abs||0}</td><td>${h.pullups||0}</td>
+        <td>${h.weightKg||0} kg</td><td>${status}</td><td>${pts}</td>
       </tr>`;
     }).join('')}
     </tbody>
@@ -362,13 +406,19 @@ function refreshUI() {
 
   renderRankJourney(user);
 
+  // Points + Rang
+  document.getElementById('stat-points').textContent = (user.points||0).toLocaleString();
+  const statRankBig = document.getElementById('stat-rank-big');
+  statRankBig.textContent = user.rank;
+  statRankBig.style.color = rankColor(user.rank);
+  statRankBig.style.textShadow = `0 0 20px ${rankColor(user.rank)}`;
+
   // Totals
   document.getElementById('tot-pushups').textContent = (user.totalPushups||0).toLocaleString();
   document.getElementById('tot-abs').textContent = (user.totalAbs||0).toLocaleString();
   document.getElementById('tot-pullups').textContent = (user.totalPullups||0).toLocaleString();
   document.getElementById('tot-weight').textContent = (user.totalWeightKg||0) + ' kg';
   document.getElementById('tot-days-done').textContent = user.totalDaysCompleted || 0;
-  document.getElementById('tot-days-missed').textContent = user.totalDaysMissed || 0;
 
   // Performance bars
   const pPct = Math.min(100, Math.round((user.todayPushups/100)*100));
@@ -384,10 +434,10 @@ function refreshUI() {
   document.getElementById('perf-rate-bar').style.width = rate + '%';
 
   // Heatmap
-  renderHeatmap(user.history || []);
+  renderHeatmap(user.history || [], user);
 
   // History
-  renderHistory(user.history || []);
+  renderHistory(user.history || [], user);
 }
 
 refreshUI();

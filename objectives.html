@@ -130,7 +130,7 @@
   <div class="nav-user">
     <span class="nav-rank" id="nav-rank">E</span>
     <span style="font-family:var(--font-ui);font-size:0.9rem;color:var(--text-secondary)" id="nav-name">—</span>
-    <button class="btn-logout" onclick="logout()">Déco</button>
+    <button class="btn-logout" onclick="logout()">Exit</button>
   </div>
   <button class="nav-hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
     <span></span><span></span><span></span>
@@ -192,11 +192,6 @@
         </div>
       </div>
       <div id="done-pushups" style="display:none;" class="done-badge">✓ OBJECTIF ACCOMPLI</div>
-      <div class="action-btns" id="btns-pushups">
-        <input type="number" id="inp-pushups" min="1" max="500" value="10">
-        <button class="btn btn-primary btn-sm" onclick="handlePushups()">+Ajouter</button>
-        <button class="btn btn-danger btn-xs" onclick="handleResetPushups()" title="Reset">↺</button>
-      </div>
     </div>
 
     <!-- ABS -->
@@ -220,54 +215,8 @@
         </div>
       </div>
       <div id="done-abs" style="display:none;" class="done-badge" style="border-color:rgba(6,182,212,0.4);color:var(--cyan);background:rgba(6,182,212,0.1)">✓ OBJECTIF ACCOMPLI</div>
-      <div class="action-btns" id="btns-abs">
-        <input type="number" id="inp-abs" min="1" max="500" value="10">
-        <button class="btn btn-cyan btn-sm" onclick="handleAbs()">+Ajouter</button>
-        <button class="btn btn-danger btn-xs" onclick="handleResetAbs()" title="Reset">↺</button>
-      </div>
     </div>
 
-  </div>
-
-  <!-- BONUS SECTION -->
-  <div class="bonus-section">
-    <div class="quick-title" style="font-family:var(--font-display);font-size:0.8rem;letter-spacing:3px;text-transform:uppercase;color:var(--text-muted);margin-bottom:1rem;display:flex;align-items:center;gap:10px;">
-      Bonus &amp; Extra
-      <span style="flex:1;height:1px;background:var(--border);display:block;"></span>
-    </div>
-    <div class="bonus-cards">
-
-      <div class="bonus-card">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;">
-          <span style="font-size:1.5rem"></span>
-          <div>
-            <div style="font-family:var(--font-display);font-size:0.9rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Tractions</div>
-            <div style="font-size:0.75rem;color:var(--text-muted);font-family:var(--font-mono)">+1 pt par traction</div>
-          </div>
-          <div style="margin-left:auto;font-family:var(--font-mono);font-size:1.3rem;font-weight:700;color:var(--purple-bright)" id="cnt-pullups">0</div>
-        </div>
-        <div class="action-btns">
-          <input type="number" id="inp-pullups" min="1" max="200" value="5">
-          <button class="btn btn-primary btn-sm" onclick="handlePullups()">+Ajouter</button>
-        </div>
-      </div>
-
-      <div class="bonus-card">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;">
-          <span style="font-size:1.5rem"></span>
-          <div>
-            <div style="font-family:var(--font-display);font-size:0.9rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Poids Soulevé</div>
-            <div style="font-size:0.75rem;color:var(--text-muted);font-family:var(--font-mono)">+1 pt par 10 kg</div>
-          </div>
-          <div style="margin-left:auto;font-family:var(--font-mono);font-size:1.3rem;font-weight:700;color:var(--gold)" id="cnt-weight">0 kg</div>
-        </div>
-        <div class="action-btns">
-          <input type="number" id="inp-weight" min="1" max="1000" value="50">
-          <button class="btn btn-sm" style="background:linear-gradient(135deg,#92400e,var(--gold));color:white;" onclick="handleWeight()">+Ajouter</button>
-        </div>
-      </div>
-
-    </div>
   </div>
 
   <!-- PENALTY INFO BOX -->
@@ -354,11 +303,12 @@ function handlePushups() {
   refreshUI();
 }
 
-function handleResetPushups() {
+async function handleResetPushups() {
   const user = getCurrentUser();
   if(!user||user.todayPushups===0) { showToast('warning','Rien à réinitialiser','Aucune pompe enregistrée aujourd\'hui'); return; }
   const total = user.todayPushups + (user.todayObjPushups ? 50 : 0);
-  if(!confirm(`Réinitialiser ${user.todayPushups} pompes ? -${total} points.`)) return;
+  const ok = await showConfirm('Réinitialiser les pompes ?', `${user.todayPushups} pompes supprimées`, `-${total} PTS DÉDUITS`);
+  if(!ok) return;
   resetPushups();
   toastReset('pushups', total);
   refreshUI();
@@ -376,11 +326,12 @@ function handleAbs() {
   refreshUI();
 }
 
-function handleResetAbs() {
+async function handleResetAbs() {
   const user = getCurrentUser();
   if(!user||user.todayAbs===0) { showToast('warning','Rien à réinitialiser','Aucun abdo enregistré aujourd\'hui'); return; }
   const total = user.todayAbs + (user.todayObjAbs ? 50 : 0);
-  if(!confirm(`Réinitialiser ${user.todayAbs} abdos ? -${total} points.`)) return;
+  const ok = await showConfirm('Réinitialiser les abdos ?', `${user.todayAbs} abdos supprimés`, `-${total} PTS DÉDUITS`);
+  if(!ok) return;
   resetAbs();
   toastReset('abs', total);
   refreshUI();
@@ -394,11 +345,33 @@ function handlePullups() {
   refreshUI();
 }
 
+async function handleResetPullups() {
+  const user = getCurrentUser();
+  if(!user||user.todayPullups===0) { showToast('warning','Rien à réinitialiser','Aucune traction enregistrée aujourd\'hui'); return; }
+  const pts = user.todayPullups;
+  const ok = await showConfirm('Réinitialiser les tractions ?', `${pts} tractions supprimées`, `-${pts} PTS DÉDUITS`);
+  if(!ok) return;
+  resetPullups();
+  showToast('warning', 'Tractions réinitialisées', 'Compteur remis à zéro', `-${pts} PTS DÉDUITS`);
+  refreshUI();
+}
+
 function handleWeight() {
   const kg = parseInt(document.getElementById('inp-weight').value)||0;
   if(kg<=0) return;
   addWeight(kg);
   toastWeight(kg);
+  refreshUI();
+}
+
+async function handleResetWeight() {
+  const user = getCurrentUser();
+  if(!user||user.todayWeightKg===0) { showToast('warning','Rien à réinitialiser','Aucun poids enregistré aujourd\'hui'); return; }
+  const pts = Math.floor(user.todayWeightKg / 10);
+  const ok = await showConfirm('Réinitialiser le poids soulevé ?', `${user.todayWeightKg} kg supprimés`, pts > 0 ? `-${pts} PTS DÉDUITS` : '');
+  if(!ok) return;
+  resetWeight();
+  showToast('warning', 'Poids réinitialisé', 'Compteur remis à zéro', pts > 0 ? `-${pts} PTS DÉDUITS` : '');
   refreshUI();
 }
 

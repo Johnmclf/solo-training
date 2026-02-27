@@ -17,14 +17,14 @@ function saveDB(db) {
 }
 
 function getCurrentUser() {
-  const username = sessionStorage.getItem('current_user');
+  const username = localStorage.getItem('current_user');
   if (!username) return null;
   const db = getDB();
   return db.users[username] || null;
 }
 
 function getCurrentUsername() {
-  return sessionStorage.getItem('current_user');
+  return localStorage.getItem('current_user');
 }
 
 function saveCurrentUser(userData) {
@@ -156,13 +156,13 @@ function login(username, password) {
 
   db.users[username] = user;
   saveDB(db);
-  sessionStorage.setItem('current_user', username);
+  localStorage.setItem('current_user', username);
 
   return { success: true, penaltyLog, daysMissed };
 }
 
 function logout() {
-  sessionStorage.removeItem('current_user');
+  localStorage.removeItem('current_user');
   window.location.href = 'index.html';
 }
 
@@ -185,9 +185,11 @@ function addPushups(count) {
     if (user.todayObjAbs) {
       user.totalDaysCompleted++;
     }
-    saveCurrentUser(user);
+    user.rank = calcRank(user.points);
+  saveCurrentUser(user);
     return { objCompleted: true, msg: 'Objectif Pompes complété ! +50 pts, combo +0.05' };
   }
+  user.rank = calcRank(user.points);
   saveCurrentUser(user);
   return { objCompleted: false };
 }
@@ -205,6 +207,8 @@ function resetPushups() {
     user.todayObjPushups = false;
   }
   user.todayPushups = 0;
+  user.rank = calcRank(user.points);
+  user.rank = calcRank(user.points);
   saveCurrentUser(user);
 }
 
@@ -222,9 +226,11 @@ function addAbs(count) {
     if (user.todayObjPushups) {
       user.totalDaysCompleted++;
     }
-    saveCurrentUser(user);
+    user.rank = calcRank(user.points);
+  saveCurrentUser(user);
     return { objCompleted: true, msg: 'Objectif Abdos complété ! +50 pts, combo +0.05' };
   }
+  user.rank = calcRank(user.points);
   saveCurrentUser(user);
   return { objCompleted: false };
 }
@@ -241,6 +247,8 @@ function resetAbs() {
     user.todayObjAbs = false;
   }
   user.todayAbs = 0;
+  user.rank = calcRank(user.points);
+  user.rank = calcRank(user.points);
   saveCurrentUser(user);
 }
 
@@ -250,6 +258,7 @@ function addPullups(count) {
   user.todayPullups += count;
   user.totalPullups += count;
   user.points += count;
+  user.rank = calcRank(user.points);
   saveCurrentUser(user);
 }
 
@@ -259,6 +268,31 @@ function addWeight(kg) {
   user.todayWeightKg += kg;
   user.totalWeightKg += kg;
   user.points += Math.floor(kg / 10);
+  user.rank = calcRank(user.points);
+  saveCurrentUser(user);
+}
+
+function resetPullups() {
+  const user = getCurrentUser();
+  if (!user) return;
+  const pts = user.todayPullups;
+  user.points = Math.max(0, user.points - pts);
+  user.totalPullups = Math.max(0, user.totalPullups - pts);
+  user.todayPullups = 0;
+  user.rank = calcRank(user.points);
+  user.rank = calcRank(user.points);
+  saveCurrentUser(user);
+}
+
+function resetWeight() {
+  const user = getCurrentUser();
+  if (!user) return;
+  const pts = Math.floor(user.todayWeightKg / 10);
+  user.points = Math.max(0, user.points - pts);
+  user.totalWeightKg = Math.max(0, user.totalWeightKg - user.todayWeightKg);
+  user.todayWeightKg = 0;
+  user.rank = calcRank(user.points);
+  user.rank = calcRank(user.points);
   saveCurrentUser(user);
 }
 
@@ -283,10 +317,10 @@ function addDays(dateStr, n) {
 
 function calcRank(points) {
   if (points >= 10000000) return 'S';
-  if (points >= 1000000) return 'A';
-  if (points >= 100000) return 'B';
-  if (points >= 10000) return 'C';
-  if (points >= 1000) return 'D';
+  if (points >= 1000000)  return 'A';
+  if (points >= 100000)   return 'B';
+  if (points >= 10000)    return 'C';
+  if (points >= 1000)     return 'D';
   return 'E';
 }
 
@@ -296,7 +330,7 @@ function rankColor(rank) {
 }
 
 function requireAuth() {
-  if (!sessionStorage.getItem('current_user')) {
+  if (!localStorage.getItem('current_user')) {
     window.location.href = 'login.html';
     return false;
   }
