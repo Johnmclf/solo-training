@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connexion — SOLO TRAINING</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.scan-line {
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  animation: scan 3s linear infinite;
+}
+@keyframes scan {
+  0% { top: 0; opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+.auth-logo {
+  display: flex; align-items: center; justify-content: center;
+  gap: 12px; margin-bottom: 2rem;
+  text-decoration: none;
+}
+.auth-logo-icon {
+  width: 48px; height: 48px;
+  background: linear-gradient(135deg, var(--purple), var(--cyan));
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 1rem; font-weight: 900; color: white;
+}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="bg-glow-top"></div>
+
+<div class="toast-container" id="toasts"></div>
+
+<main class="auth-container">
+  <div class="auth-box">
+
+    <a href="index.html" class="auth-logo">
+      <div class="auth-logo-icon hexagon">S</div>
+      <span style="font-family:var(--font-display);font-size:1rem;letter-spacing:3px;color:var(--purple-bright)">SOLO TRAINING</span>
+    </a>
+
+    <div class="system-box" style="margin-bottom: 2rem; position:relative; overflow:hidden;">
+      <div class="scan-line"></div>
+      <div class="auth-title">Connexion</div>
+      <div class="auth-subtitle">// IDENTIFY YOURSELF, HUNTER</div>
+    </div>
+
+    <div class="card card-glow">
+      <div class="input-group">
+        <label class="input-label">Nom de Chasseur</label>
+        <input type="text" id="username" class="input-field" placeholder="votre_pseudo" autocomplete="username">
+      </div>
+      <div class="input-group">
+        <label class="input-label">Mot de Passe</label>
+        <input type="password" id="password" class="input-field" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <div id="error-msg"></div>
+      <button class="btn btn-primary" style="width:100%; margin-top:0.5rem;" onclick="doLogin()">
+        <span>⚔</span> Accéder au Système
+      </button>
+    </div>
+
+    <div style="text-align:center; margin-top:1.5rem; color:var(--text-muted); font-size:0.9rem;">
+      Pas encore de compte ?
+      <a href="register.html" style="color:var(--purple-bright); text-decoration:none; font-weight:600; margin-left:6px;">S'inscrire →</a>
+    </div>
+  </div>
+</main>
+
+<script src="db.js"></script>
+<script>
+// If already logged in, redirect
+if (sessionStorage.getItem('current_user')) {
+  window.location.href = 'home.html';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+
+function doLogin() {
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value;
+  const errEl = document.getElementById('error-msg');
+  errEl.innerHTML = '';
+
+  if (!username || !password) {
+    errEl.innerHTML = '<div class="alert alert-error">⚠ Remplis tous les champs, chasseur.</div>';
+    return;
+  }
+
+  const result = login(username, password);
+  if (!result.success) {
+    errEl.innerHTML = `<div class="alert alert-error">⚠ ${result.error}</div>`;
+    return;
+  }
+
+  // Show penalty modal if needed
+  if (result.daysMissed > 0 && result.penaltyLog.length > 0) {
+    showPenaltyModal(result.penaltyLog, result.daysMissed);
+  } else {
+    window.location.href = 'home.html';
+  }
+}
+
+function showPenaltyModal(log, days) {
+  const totalLoss = log.reduce((s, d) => s + d.points, 0);
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:520px;">
+      <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--red),transparent);"></div>
+
+      <div style="text-align:center; margin-bottom:2rem;">
+        <div style="font-family:var(--font-mono);font-size:0.65rem;letter-spacing:3px;color:rgba(239,68,68,0.6);margin-bottom:0.8rem;">[ SYSTÈME — PÉNALITÉ ]</div>
+        <div style="font-size:2.8rem; margin-bottom:0.8rem; filter:drop-shadow(0 0 12px rgba(239,68,68,0.5))">💀</div>
+        <div style="font-family:var(--font-display);font-size:1.3rem;font-weight:900;color:var(--red);letter-spacing:3px;text-shadow:0 0 20px rgba(239,68,68,0.5);">ABSENCE DÉTECTÉE</div>
+        <div style="font-family:var(--font-mono);font-size:0.78rem;color:var(--text-muted);margin-top:6px;">
+          ${days} jour${days>1?'s':''} sans activité enregistrée
+        </div>
+      </div>
+
+      <div style="background:rgba(3,3,10,0.8);border:1px solid rgba(239,68,68,0.2);border-radius:6px;padding:1rem;margin-bottom:1.5rem;">
+        <div style="font-family:var(--font-display);font-size:0.6rem;letter-spacing:2px;color:rgba(239,68,68,0.5);margin-bottom:0.8rem;">RAPPORT DE SANCTIONS</div>
+        ${log.map(d => `
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(26,26,78,0.5);">
+            <span style="font-family:var(--font-mono);font-size:0.8rem;color:var(--text-secondary)">${d.date}</span>
+            <span style="font-family:var(--font-mono);font-size:0.75rem;color:var(--text-muted)">${d.label}</span>
+            <span style="font-family:var(--font-display);font-size:0.85rem;font-weight:700;color:var(--red)">${d.points} pts</span>
+          </div>
+        `).join('')}
+      </div>
+
+      <div style="text-align:center;padding:1.2rem;background:linear-gradient(135deg,rgba(239,68,68,0.08),rgba(239,68,68,0.03));border:1px solid rgba(239,68,68,0.25);border-radius:6px;margin-bottom:1.5rem;">
+        <div style="font-family:var(--font-mono);font-size:0.65rem;letter-spacing:2px;color:rgba(239,68,68,0.5);text-transform:uppercase;margin-bottom:4px">Pénalité Totale</div>
+        <div style="font-family:var(--font-display);font-size:3rem;font-weight:900;color:var(--red);text-shadow:0 0 30px rgba(239,68,68,0.4);line-height:1">${totalLoss}</div>
+        <div style="font-family:var(--font-mono);font-size:0.75rem;color:rgba(239,68,68,0.6);margin-top:2px">POINTS RETIRÉS</div>
+      </div>
+
+      <div style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-muted);text-align:center;margin-bottom:1.2rem;line-height:1.6;">
+        Le Système est sans pitié.<br>L'absence n'est pas une option.
+      </div>
+
+      <button class="btn btn-primary" style="width:100%;" onclick="document.querySelector('.modal-overlay').remove(); window.location.href='home.html'">
+        <span>⚔</span> Accepter et reprendre l'ascension
+      </button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+}
+</script>
+</body>
+</html>

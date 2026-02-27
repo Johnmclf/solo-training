@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S'inscrire — SOLO TRAINING</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="bg-glow-top"></div>
+
+<div class="toast-container" id="toasts"></div>
+
+<main class="auth-container">
+  <div class="auth-box">
+
+    <a href="index.html" style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:2rem;text-decoration:none;">
+      <div style="width:48px;height:48px;background:linear-gradient(135deg,var(--purple),var(--cyan));clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:1rem;font-weight:900;color:white;">S</div>
+      <span style="font-family:var(--font-display);font-size:1rem;letter-spacing:3px;color:var(--purple-bright)">SOLO TRAINING</span>
+    </a>
+
+    <div class="system-box" style="margin-bottom: 2rem;">
+      <div class="auth-title">Inscription</div>
+      <div class="auth-subtitle">// NEW HUNTER REGISTRATION</div>
+    </div>
+
+    <div class="card card-glow">
+      <div class="input-group">
+        <label class="input-label">Nom d'affichage</label>
+        <input type="text" id="displayname" class="input-field" placeholder="Sung Jin-Woo" autocomplete="name">
+      </div>
+      <div class="input-group">
+        <label class="input-label">Nom de Chasseur (identifiant)</label>
+        <input type="text" id="username" class="input-field" placeholder="sung_jinwoo" autocomplete="username">
+        <div style="font-size:0.75rem;color:var(--text-muted)">Minuscules, sans espaces. Sera votre identifiant de connexion.</div>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Mot de Passe</label>
+        <input type="password" id="password" class="input-field" placeholder="••••••••" autocomplete="new-password">
+      </div>
+      <div class="input-group">
+        <label class="input-label">Confirmer le Mot de Passe</label>
+        <input type="password" id="password2" class="input-field" placeholder="••••••••" autocomplete="new-password">
+      </div>
+
+      <div id="error-msg"></div>
+
+      <button class="btn btn-primary" style="width:100%;" onclick="doRegister()">
+        <span></span> Rejoindre le Système
+      </button>
+    </div>
+
+    <div style="text-align:center; margin-top:1.5rem; color:var(--text-muted); font-size:0.9rem;">
+      Déjà inscrit ?
+      <a href="login.html" style="color:var(--purple-bright);text-decoration:none;font-weight:600;margin-left:6px;">Se connecter →</a>
+    </div>
+  </div>
+</main>
+
+<script src="db.js"></script>
+<script>
+if (sessionStorage.getItem('current_user')) {
+  window.location.href = 'home.html';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') doRegister();
+});
+
+function doRegister() {
+  const displayname = document.getElementById('displayname').value.trim();
+  const username = document.getElementById('username').value.trim().toLowerCase();
+  const pw = document.getElementById('password').value;
+  const pw2 = document.getElementById('password2').value;
+  const errEl = document.getElementById('error-msg');
+  errEl.innerHTML = '';
+
+  if (!displayname || !username || !pw || !pw2) {
+    errEl.innerHTML = '<div class="alert alert-error">⚠ Remplis tous les champs.</div>';
+    return;
+  }
+  if (username.includes(' ') || !/^[a-z0-9_]+$/.test(username)) {
+    errEl.innerHTML = '<div class="alert alert-error">⚠ Identifiant invalide (lettres minuscules, chiffres, _ uniquement).</div>';
+    return;
+  }
+  if (pw.length < 4) {
+    errEl.innerHTML = '<div class="alert alert-error">⚠ Mot de passe trop court (min. 4 caractères).</div>';
+    return;
+  }
+  if (pw !== pw2) {
+    errEl.innerHTML = '<div class="alert alert-error">⚠ Les mots de passe ne correspondent pas.</div>';
+    return;
+  }
+
+  const result = register(username, pw, displayname);
+  if (!result.success) {
+    errEl.innerHTML = `<div class="alert alert-error">⚠ ${result.error}</div>`;
+    return;
+  }
+
+  // Auto login
+  login(username, pw);
+  window.location.href = 'home.html';
+}
+</script>
+</body>
+</html>

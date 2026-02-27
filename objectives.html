@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mes Objectifs — SOLO TRAINING</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.page { padding: 2rem; max-width: 1100px; margin: 0 auto; }
+
+.page-header {
+  margin-bottom: 2.5rem;
+}
+.page-title {
+  font-family: var(--font-display);
+  font-size: 2rem; font-weight: 900;
+  letter-spacing: 3px; text-transform: uppercase;
+}
+
+.objectives-main { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+
+.obj-big-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 2rem;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+.obj-big-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--clr), transparent);
+}
+.obj-big-card.done {
+  border-color: rgba(34,197,94,0.4);
+  background: linear-gradient(135deg, var(--bg-card), rgba(34,197,94,0.05));
+  box-shadow: 0 0 30px rgba(34,197,94,0.08);
+}
+
+.obj-header {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 1.5rem;
+}
+.obj-emoji { font-size: 2.5rem; }
+.obj-info {}
+.obj-name {
+  font-family: var(--font-display);
+  font-size: 1.1rem; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+}
+.obj-reward {
+  font-size: 0.8rem; color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.obj-big-number {
+  font-family: var(--font-display);
+  font-size: 3.5rem; font-weight: 900;
+  line-height: 1;
+  margin-bottom: 0.5rem;
+}
+.obj-goal { font-family: var(--font-mono); font-size: 0.9rem; color: var(--text-muted); }
+
+.prog-wrapper { margin: 1.5rem 0; }
+.prog-header { display: flex; justify-content: space-between; font-size: 0.8rem; font-family: var(--font-mono); color: var(--text-secondary); margin-bottom: 8px; }
+
+.action-btns { display: flex; gap: 8px; margin-top: 1.2rem; }
+.action-btns input {
+  flex: 1; background: rgba(3,3,10,0.8);
+  border: 1px solid var(--border); border-radius: 4px;
+  padding: 10px 12px; color: var(--text-primary);
+  font-family: var(--font-mono); font-size: 1rem; text-align: center;
+}
+.action-btns input:focus { outline:none; border-color: var(--purple); }
+
+.done-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(34,197,94,0.15); border: 1px solid rgba(34,197,94,0.4);
+  color: var(--green); padding: 6px 14px; border-radius: 20px;
+  font-size: 0.8rem; font-weight: 700; letter-spacing: 1px;
+  font-family: var(--font-display);
+}
+
+.bonus-section { margin-top: 2rem; }
+
+.bonus-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+.bonus-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.reward-summary {
+  background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(6,182,212,0.05));
+  border: 1px solid var(--border-glow);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; text-align: center;
+}
+.reward-item-label { font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); font-family: var(--font-display); }
+.reward-item-value { font-family: var(--font-display); font-size: 1.5rem; font-weight: 900; margin-top: 4px; }
+
+@media (max-width: 700px) {
+  .objectives-main, .bonus-cards, .reward-summary { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="bg-glow-top"></div>
+
+<div class="toast-container" id="toasts"></div>
+
+<nav class="nav">
+  <a href="home.html" class="nav-logo">
+    <div class="logo-icon hexagon">S</div>
+    SOLO TRAINING
+  </a>
+  <div class="nav-links">
+    <a href="home.html" class="nav-link">Accueil</a>
+    <a href="objectives.html" class="nav-link active">Objectifs</a>
+    <a href="statistics.html" class="nav-link">Statistiques</a>
+  </div>
+  <div class="nav-user">
+    <span class="nav-rank" id="nav-rank">E</span>
+    <span style="font-family:var(--font-ui);font-size:0.9rem;color:var(--text-secondary)" id="nav-name">—</span>
+    <button class="btn-logout" onclick="logout()">Déco</button>
+  </div>
+  <button class="nav-hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+<div class="nav-mobile-menu" id="mobile-menu">
+  <a href="home.html" class="nav-link">Accueil</a>
+  <a href="objectives.html" class="nav-link active">Objectifs</a>
+  <a href="statistics.html" class="nav-link">Statistiques</a>
+  <div style="height:1px;background:var(--border);margin:6px 0;"></div>
+  <button class="btn-logout" style="width:100%;text-align:left;padding:12px 16px;" onclick="logout()">Se déconnecter</button>
+</div>
+
+<main class="main-content">
+<div class="page">
+
+  <div class="page-header">
+    <div class="section-title">Aujourd'hui</div>
+    <div class="page-title">Mes <span class="text-purple">Objectifs</span></div>
+  </div>
+
+  <!-- REWARD SUMMARY -->
+  <div class="reward-summary">
+    <div>
+      <div class="reward-item-label">Points Totaux</div>
+      <div class="reward-item-value text-purple" id="sum-points">0</div>
+    </div>
+    <div>
+      <div class="reward-item-label">Combo Actuel</div>
+      <div class="reward-item-value text-gold" id="sum-combo">x1.00</div>
+    </div>
+    <div>
+      <div class="reward-item-label">Rang</div>
+      <div class="reward-item-value" id="sum-rank" style="color:var(--rank-e)">E</div>
+    </div>
+  </div>
+
+  <!-- MAIN OBJECTIVES -->
+  <div class="objectives-main">
+
+    <!-- PUSHUPS -->
+    <div class="obj-big-card" id="card-pushups" style="--clr:var(--purple)">
+      <div class="obj-header">
+        <span class="obj-emoji"></span>
+        <div class="obj-info">
+          <div class="obj-name text-purple">Pompes</div>
+          <div class="obj-reward">Objectif : 100 · Récompense : +50 pts · Combo +0.05</div>
+        </div>
+      </div>
+      <div class="obj-big-number text-purple" id="cnt-pushups">0</div>
+      <div class="obj-goal">/ 100 pompes</div>
+      <div class="prog-wrapper">
+        <div class="prog-header">
+          <span id="pct-pushups">0%</span>
+          <span id="status-pushups" style="color:var(--text-muted)">En cours…</span>
+        </div>
+        <div class="progress-bar" style="height:12px;">
+          <div class="progress-fill progress-purple" id="bar-pushups" style="width:0%"></div>
+        </div>
+      </div>
+      <div id="done-pushups" style="display:none;" class="done-badge">✓ OBJECTIF ACCOMPLI</div>
+      <div class="action-btns" id="btns-pushups">
+        <input type="number" id="inp-pushups" min="1" max="500" value="10">
+        <button class="btn btn-primary btn-sm" onclick="handlePushups()">+Ajouter</button>
+        <button class="btn btn-danger btn-xs" onclick="handleResetPushups()" title="Reset">↺</button>
+      </div>
+    </div>
+
+    <!-- ABS -->
+    <div class="obj-big-card" id="card-abs" style="--clr:var(--cyan)">
+      <div class="obj-header">
+        <span class="obj-emoji"></span>
+        <div class="obj-info">
+          <div class="obj-name text-cyan">Abdominaux</div>
+          <div class="obj-reward">Objectif : 100 · Récompense : +50 pts · Combo +0.05</div>
+        </div>
+      </div>
+      <div class="obj-big-number text-cyan" id="cnt-abs">0</div>
+      <div class="obj-goal">/ 100 abdos</div>
+      <div class="prog-wrapper">
+        <div class="prog-header">
+          <span id="pct-abs">0%</span>
+          <span id="status-abs" style="color:var(--text-muted)">En cours…</span>
+        </div>
+        <div class="progress-bar" style="height:12px;">
+          <div class="progress-fill progress-cyan" id="bar-abs" style="width:0%"></div>
+        </div>
+      </div>
+      <div id="done-abs" style="display:none;" class="done-badge" style="border-color:rgba(6,182,212,0.4);color:var(--cyan);background:rgba(6,182,212,0.1)">✓ OBJECTIF ACCOMPLI</div>
+      <div class="action-btns" id="btns-abs">
+        <input type="number" id="inp-abs" min="1" max="500" value="10">
+        <button class="btn btn-cyan btn-sm" onclick="handleAbs()">+Ajouter</button>
+        <button class="btn btn-danger btn-xs" onclick="handleResetAbs()" title="Reset">↺</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BONUS SECTION -->
+  <div class="bonus-section">
+    <div class="quick-title" style="font-family:var(--font-display);font-size:0.8rem;letter-spacing:3px;text-transform:uppercase;color:var(--text-muted);margin-bottom:1rem;display:flex;align-items:center;gap:10px;">
+      Bonus &amp; Extra
+      <span style="flex:1;height:1px;background:var(--border);display:block;"></span>
+    </div>
+    <div class="bonus-cards">
+
+      <div class="bonus-card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;">
+          <span style="font-size:1.5rem"></span>
+          <div>
+            <div style="font-family:var(--font-display);font-size:0.9rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Tractions</div>
+            <div style="font-size:0.75rem;color:var(--text-muted);font-family:var(--font-mono)">+1 pt par traction</div>
+          </div>
+          <div style="margin-left:auto;font-family:var(--font-mono);font-size:1.3rem;font-weight:700;color:var(--purple-bright)" id="cnt-pullups">0</div>
+        </div>
+        <div class="action-btns">
+          <input type="number" id="inp-pullups" min="1" max="200" value="5">
+          <button class="btn btn-primary btn-sm" onclick="handlePullups()">+Ajouter</button>
+        </div>
+      </div>
+
+      <div class="bonus-card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;">
+          <span style="font-size:1.5rem"></span>
+          <div>
+            <div style="font-family:var(--font-display);font-size:0.9rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Poids Soulevé</div>
+            <div style="font-size:0.75rem;color:var(--text-muted);font-family:var(--font-mono)">+1 pt par 10 kg</div>
+          </div>
+          <div style="margin-left:auto;font-family:var(--font-mono);font-size:1.3rem;font-weight:700;color:var(--gold)" id="cnt-weight">0 kg</div>
+        </div>
+        <div class="action-btns">
+          <input type="number" id="inp-weight" min="1" max="1000" value="50">
+          <button class="btn btn-sm" style="background:linear-gradient(135deg,#92400e,var(--gold));color:white;" onclick="handleWeight()">+Ajouter</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- PENALTY INFO BOX -->
+  <div class="system-box" style="margin-top:2rem;">
+    <div style="font-family:var(--font-mono);font-size:0.85rem;color:var(--text-secondary);line-height:1.8;">
+      <div style="margin-bottom:0.5rem;color:var(--purple-bright);font-weight:700;">Règles du Système</div>
+       Compléter 1 objectif → <span style="color:var(--green)">+50 pts</span>, combo <span style="color:var(--gold)">+0.05</span><br>
+       Rater 1 objectif en fin de journée → <span style="color:var(--red)">-50 pts</span><br>
+       Rater les DEUX → <span style="color:var(--red)">-100 pts</span>, combo <span style="color:var(--red)">reset à 1.00</span><br>
+       Chaque jour sans connexion = pénalité appliquée à la prochaine connexion
+    </div>
+  </div>
+
+</div>
+</main>
+
+<script src="db.js"></script>
+<script src="ui.js"></script>
+<script>
+if (!requireAuth()) {}
+
+function refreshUI() {
+  const user = getCurrentUser();
+  if (!user) return;
+
+  // Nav
+  document.getElementById('nav-name').textContent = user.displayName;
+  const nr = document.getElementById('nav-rank');
+  nr.textContent = user.rank;
+  nr.style.color = rankColor(user.rank);
+  nr.style.borderColor = rankColor(user.rank);
+
+  // Summary
+  document.getElementById('sum-points').textContent = user.points.toLocaleString();
+  document.getElementById('sum-combo').textContent = 'x' + parseFloat(user.combo).toFixed(2);
+  const sr = document.getElementById('sum-rank');
+  sr.textContent = user.rank;
+  sr.style.color = rankColor(user.rank);
+
+  // Pushups
+  const pp = Math.min(100, Math.round(user.todayPushups));
+  document.getElementById('cnt-pushups').textContent = pp;
+  const ppct = Math.min(100, Math.round((pp/100)*100));
+  document.getElementById('pct-pushups').textContent = ppct + '%';
+  document.getElementById('bar-pushups').style.width = ppct + '%';
+  if (user.todayObjPushups) {
+    document.getElementById('card-pushups').classList.add('done');
+    document.getElementById('done-pushups').style.display = 'inline-flex';
+    document.getElementById('status-pushups').textContent = '✓ Complété !';
+    document.getElementById('status-pushups').style.color = 'var(--green)';
+  } else {
+    document.getElementById('status-pushups').textContent = `${100 - pp} restants`;
+  }
+
+  // Abs
+  const ap = Math.min(100, user.todayAbs);
+  document.getElementById('cnt-abs').textContent = user.todayAbs;
+  const apct = Math.min(100, Math.round((ap/100)*100));
+  document.getElementById('pct-abs').textContent = apct + '%';
+  document.getElementById('bar-abs').style.width = apct + '%';
+  if (user.todayObjAbs) {
+    document.getElementById('card-abs').classList.add('done');
+    document.getElementById('done-abs').style.display = 'inline-flex';
+    document.getElementById('status-abs').textContent = '✓ Complété !';
+    document.getElementById('status-abs').style.color = 'var(--cyan)';
+  } else {
+    document.getElementById('status-abs').textContent = `${100 - ap} restants`;
+  }
+
+  // Bonus
+  document.getElementById('cnt-pullups').textContent = user.todayPullups;
+  document.getElementById('cnt-weight').textContent = user.todayWeightKg + ' kg';
+}
+
+function handlePushups() {
+  const n = parseInt(document.getElementById('inp-pushups').value)||0;
+  if(n<=0) return;
+  const prevBothDone = getCurrentUser()?.todayObjAbs;
+  const r = addPushups(n);
+  if(r&&r.objCompleted) {
+    if(prevBothDone) toastBothObjComplete();
+    else toastObjComplete('pushups');
+  } else { toastPushups(n); }
+  refreshUI();
+}
+
+function handleResetPushups() {
+  const user = getCurrentUser();
+  if(!user||user.todayPushups===0) { showToast('warning','Rien à réinitialiser','Aucune pompe enregistrée aujourd\'hui'); return; }
+  const total = user.todayPushups + (user.todayObjPushups ? 50 : 0);
+  if(!confirm(`Réinitialiser ${user.todayPushups} pompes ? -${total} points.`)) return;
+  resetPushups();
+  toastReset('pushups', total);
+  refreshUI();
+}
+
+function handleAbs() {
+  const n = parseInt(document.getElementById('inp-abs').value)||0;
+  if(n<=0) return;
+  const prevBothDone = getCurrentUser()?.todayObjPushups;
+  const r = addAbs(n);
+  if(r&&r.objCompleted) {
+    if(prevBothDone) toastBothObjComplete();
+    else toastObjComplete('abs');
+  } else { toastAbs(n); }
+  refreshUI();
+}
+
+function handleResetAbs() {
+  const user = getCurrentUser();
+  if(!user||user.todayAbs===0) { showToast('warning','Rien à réinitialiser','Aucun abdo enregistré aujourd\'hui'); return; }
+  const total = user.todayAbs + (user.todayObjAbs ? 50 : 0);
+  if(!confirm(`Réinitialiser ${user.todayAbs} abdos ? -${total} points.`)) return;
+  resetAbs();
+  toastReset('abs', total);
+  refreshUI();
+}
+
+function handlePullups() {
+  const n = parseInt(document.getElementById('inp-pullups').value)||0;
+  if(n<=0) return;
+  addPullups(n);
+  toastPullups(n);
+  refreshUI();
+}
+
+function handleWeight() {
+  const kg = parseInt(document.getElementById('inp-weight').value)||0;
+  if(kg<=0) return;
+  addWeight(kg);
+  toastWeight(kg);
+  refreshUI();
+}
+
+refreshUI();
+</script>
+<script>
+function toggleMenu() {
+  document.getElementById('hamburger').classList.toggle('open');
+  document.getElementById('mobile-menu').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  const menu = document.getElementById('mobile-menu');
+  const btn = document.getElementById('hamburger');
+  if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) {
+    menu.classList.remove('open'); btn.classList.remove('open');
+  }
+});
+</script>
+</body>
+</html>

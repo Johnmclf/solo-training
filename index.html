@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOLO TRAINING SYSTEM</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.hero-title .line1 { display: block; color: var(--text-secondary); font-size: 0.6em; letter-spacing: 6px; margin-bottom: 0.5rem; }
+.hero-title .line2 { display: block; background: linear-gradient(135deg, #818cf8, #06b6d4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.hero-title .line3 { display: block; color: var(--text-primary); }
+
+.feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; max-width: 900px; margin: 3rem auto 0; }
+
+.feature-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: all 0.3s;
+  cursor: default;
+}
+.feature-item:hover {
+  border-color: var(--border-glow);
+  transform: translateY(-4px);
+  box-shadow: 0 0 30px rgba(99,102,241,0.15);
+}
+.feature-icon {
+  font-size: 2rem; margin-bottom: 0.8rem;
+  display: block;
+}
+.feature-title {
+  font-family: var(--font-display);
+  font-size: 0.8rem; letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--purple-bright);
+  margin-bottom: 0.5rem;
+}
+.feature-desc {
+  font-size: 0.85rem; color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.hero-ctas { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+.floating-runes {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 0; overflow: hidden;
+}
+.rune {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: rgba(99,102,241,0.15);
+  animation: rune-drift linear infinite;
+  white-space: nowrap;
+}
+@keyframes rune-drift {
+  0% { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+  5% { opacity: 1; }
+  95% { opacity: 0.5; }
+  100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+}
+
+.center-symbol {
+  width: 120px; height: 120px; margin: 0 auto 2rem;
+  position: relative;
+  animation: symbol-pulse 4s ease-in-out infinite;
+}
+@keyframes symbol-pulse {
+  0%, 100% { filter: drop-shadow(0 0 10px rgba(99,102,241,0.5)); transform: rotate(0deg); }
+  50% { filter: drop-shadow(0 0 30px rgba(6,182,212,0.8)); transform: rotate(5deg); }
+}
+.center-symbol svg { width: 100%; height: 100%; }
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="bg-glow-top"></div>
+<div class="bg-glow-bottom"></div>
+
+<div class="floating-runes" id="runes"></div>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="index.html" class="nav-logo">
+    <div class="logo-icon hexagon">S</div>
+    SOLO TRAINING
+  </a>
+  <div class="nav-links">
+    <a href="login.html" class="nav-link">Connexion</a>
+    <a href="register.html" class="btn btn-primary btn-sm">S'inscrire</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<main class="main-content">
+  <section class="hero">
+    <div class="hero-eyebrow">SYSTEM INITIALISED</div>
+
+    <div class="center-symbol">
+      <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <polygon points="60,5 115,32.5 115,87.5 60,115 5,87.5 5,32.5" fill="none" stroke="rgba(99,102,241,0.4)" stroke-width="1"/>
+        <polygon points="60,15 105,37.5 105,82.5 60,105 15,82.5 15,37.5" fill="none" stroke="rgba(6,182,212,0.3)" stroke-width="1"/>
+        <polygon points="60,25 95,42.5 95,77.5 60,95 25,77.5 25,42.5" fill="rgba(99,102,241,0.05)" stroke="rgba(99,102,241,0.6)" stroke-width="1.5"/>
+        <circle cx="60" cy="60" r="15" fill="none" stroke="rgba(6,182,212,0.8)" stroke-width="1.5"/>
+        <circle cx="60" cy="60" r="5" fill="rgba(6,182,212,0.6)"/>
+        <line x1="60" y1="25" x2="60" y2="45" stroke="rgba(99,102,241,0.6)" stroke-width="1"/>
+        <line x1="60" y1="75" x2="60" y2="95" stroke="rgba(99,102,241,0.6)" stroke-width="1"/>
+        <line x1="25" y1="42.5" x2="43" y2="52.5" stroke="rgba(99,102,241,0.6)" stroke-width="1"/>
+        <line x1="77" y1="67.5" x2="95" y2="77.5" stroke="rgba(99,102,241,0.6)" stroke-width="1"/>
+        <line x1="95" y1="42.5" x2="77" y2="52.5" stroke="rgba(99,102,241,0.6)" stroke-width="1"/>
+        <line x1="43" y1="67.5" x2="25" y2="77.5" stroke="rgba(99,102,241,0.6)" stroke-width="1"/>
+      </svg>
+    </div>
+
+    <h1 class="hero-title">
+      <span class="line1">ARISE</span>
+      <span class="line2">SOLO TRAINING</span>
+      <span class="line3">SYSTEM</span>
+    </h1>
+
+    <p class="hero-sub">
+      Forge ton corps. Accumule du pouvoir. Dépasse tes limites.<br>
+      Le système te surveille. Chaque jour compte.
+    </p>
+
+    <div class="hero-ctas">
+      <a href="register.html" class="btn btn-primary">
+        <span>⚔</span> Commencer l'ascension
+      </a>
+      <a href="login.html" class="btn btn-ghost">
+        Se connecter
+      </a>
+    </div>
+
+    <div class="feature-grid">
+      <div class="feature-item">
+        <span class="feature-icon"></span>
+        <div class="feature-title">Objectifs Journaliers</div>
+        <div class="feature-desc">100 pompes + 100 abdos chaque jour pour gagner des points et augmenter votre combo.</div>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon"></span>
+        <div class="feature-title">Système de Combo</div>
+        <div class="feature-desc">Enchaînez les journées complètes pour multiplier vos récompenses. La régularité paie.</div>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon"></span>
+        <div class="feature-title">Pénalités</div>
+        <div class="feature-desc">Chaque jour manqué vous coûte des points. Le système est impitoyable.</div>
+      </div>
+      <div class="feature-item">
+        <span class="feature-icon"></span>
+        <div class="feature-title">Statistiques</div>
+        <div class="feature-desc">Suivez votre progression, votre rang et votre historique de performance.</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+// Generate floating runes
+const runeChars = ['ᚠ','ᚢ','ᚦ','ᚨ','ᚱ','ᚲ','ᚷ','ᚹ','ᚺ','ᚾ','ᛁ','ᛃ','ᛇ','ᛈ','ᛉ','ᛊ','ᛏ','ᛒ','ᛖ','ᛗ','ᛚ','ᛜ','ᛞ','ᛟ', '01','10','11','00'];
+const container = document.getElementById('runes');
+for (let i = 0; i < 20; i++) {
+  const r = document.createElement('div');
+  r.className = 'rune';
+  r.textContent = Array.from({length: 8}, () => runeChars[Math.floor(Math.random() * runeChars.length)]).join(' ');
+  r.style.left = Math.random() * 100 + '%';
+  r.style.animationDuration = (15 + Math.random() * 25) + 's';
+  r.style.animationDelay = (-Math.random() * 30) + 's';
+  container.appendChild(r);
+}
+</script>
+</body>
+</html>

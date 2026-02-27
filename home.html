@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tableau de Bord — SOLO TRAINING</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.page { padding: 2rem; max-width: 1200px; margin: 0 auto; }
+
+.welcome-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 2rem; gap: 1rem; flex-wrap: wrap;
+}
+.welcome-name {
+  font-family: var(--font-display);
+  font-size: 1.8rem; font-weight: 900;
+  letter-spacing: 2px;
+}
+.welcome-sub {
+  font-family: var(--font-mono);
+  font-size: 0.8rem; color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.points-hero {
+  background: linear-gradient(135deg, var(--bg-card), rgba(99,102,241,0.15));
+  border: 1px solid var(--border-glow);
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 40px rgba(99,102,241,0.1);
+}
+.points-hero::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--purple), var(--cyan), transparent);
+}
+.points-value {
+  font-family: var(--font-display);
+  font-size: 4rem; font-weight: 900;
+  background: linear-gradient(135deg, var(--purple-bright), var(--cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+}
+.points-label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem; letter-spacing: 3px;
+  color: var(--text-muted);
+  text-transform: uppercase; margin-top: 6px;
+}
+
+.stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin: 2rem 0; }
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.2rem;
+  text-align: center;
+  transition: all 0.3s;
+}
+.stat-card:hover { border-color: var(--border-glow); }
+
+.today-objectives {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1rem; margin: 2rem 0;
+}
+
+.obj-progress-label {
+  display: flex; justify-content: space-between;
+  font-size: 0.8rem; margin-bottom: 6px;
+  font-family: var(--font-mono);
+}
+
+.quick-actions {
+  margin: 2rem 0;
+}
+
+.quick-title {
+  font-family: var(--font-display);
+  font-size: 0.8rem; letter-spacing: 3px; text-transform: uppercase;
+  color: var(--text-muted); margin-bottom: 1rem;
+  display: flex; align-items: center; gap: 10px;
+}
+.quick-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+.quick-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
+
+.quick-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.2rem;
+}
+.quick-card-header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 1rem;
+}
+.quick-card-icon { font-size: 1.4rem; }
+.quick-card-title {
+  font-family: var(--font-display);
+  font-size: 0.85rem; font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase;
+}
+.quick-card-pts {
+  font-family: var(--font-mono);
+  font-size: 0.75rem; color: var(--text-muted);
+  margin-left: auto;
+}
+
+.input-row { display: flex; gap: 8px; align-items: center; }
+.input-row input {
+  flex: 1;
+  background: rgba(3,3,10,0.8);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 10px 14px;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  text-align: center;
+}
+.input-row input:focus { outline:none; border-color: var(--purple); box-shadow: 0 0 10px rgba(99,102,241,0.2); }
+
+/* Completed checkmark */
+.obj-done-overlay {
+  position: absolute; inset: 0;
+  background: rgba(34,197,94,0.08);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 3rem;
+  pointer-events: none;
+  animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes popIn { from {transform:scale(0);opacity:0} to {transform:scale(1);opacity:1} }
+
+.rank-next-info {
+  font-size: 0.8rem; color: var(--text-muted);
+  text-align: center; margin-top: 6px;
+  font-family: var(--font-mono);
+}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="bg-glow-top"></div>
+<div class="bg-glow-bottom"></div>
+
+<div class="toast-container" id="toasts"></div>
+
+<!-- NAV -->
+<nav class="nav">
+  <a href="home.html" class="nav-logo">
+    <div class="logo-icon hexagon">S</div>
+    SOLO TRAINING
+  </a>
+  <div class="nav-links">
+    <a href="home.html" class="nav-link active">Accueil</a>
+    <a href="objectives.html" class="nav-link">Objectifs</a>
+    <a href="statistics.html" class="nav-link">Statistiques</a>
+  </div>
+  <div class="nav-user">
+    <span class="nav-rank" id="nav-rank">E</span>
+    <span style="font-family:var(--font-ui);font-size:0.9rem;color:var(--text-secondary)" id="nav-name">—</span>
+    <button class="btn-logout" onclick="logout()">Déco</button>
+  </div>
+  <button class="nav-hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+<div class="nav-mobile-menu" id="mobile-menu">
+  <a href="home.html" class="nav-link active">Accueil</a>
+  <a href="objectives.html" class="nav-link">Objectifs</a>
+  <a href="statistics.html" class="nav-link">Statistiques</a>
+  <div style="height:1px;background:var(--border);margin:6px 0;"></div>
+  <button class="btn-logout" style="width:100%;text-align:left;padding:12px 16px;" onclick="logout()">Se déconnecter</button>
+</div>
+
+<main class="main-content">
+<div class="page">
+
+  <!-- WELCOME -->
+  <div class="welcome-header">
+    <div>
+      <div class="welcome-name" id="welcome-name">Chasseur</div>
+      <div class="welcome-sub" id="today-date">// CHARGEMENT...</div>
+    </div>
+    <div class="combo-display" id="combo-display">
+       x<span id="combo-val">1.00</span>
+    </div>
+  </div>
+
+  <!-- POINTS HERO -->
+  <div class="points-hero">
+    <div class="points-value" id="points-val">0</div>
+    <div class="points-label">Points de Chasseur</div>
+    <div class="rank-next-info" id="rank-next-info"></div>
+  </div>
+
+  <!-- STATS ROW -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="rank-badge" id="rank-badge" style="margin: 0 auto 0.5rem">E</div>
+      <div class="stat-label">Rang</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-big text-purple" id="today-pushups">0</div>
+      <div class="stat-label">Pompes Aujourd'hui</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-big text-cyan" id="today-abs">0</div>
+      <div class="stat-label">Abdos Aujourd'hui</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-big text-gold" id="today-pullups">0</div>
+      <div class="stat-label">Tractions Aujourd'hui</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-big" id="today-weight" style="color:var(--purple-bright)">0</div>
+      <div class="stat-label">kg Soulevés</div>
+    </div>
+  </div>
+
+  <!-- TODAY'S OBJECTIVES PROGRESS -->
+  <div class="quick-title">Progression du Jour</div>
+  <div class="today-objectives">
+    <div class="card" id="obj-pushups-card" style="position:relative;">
+      <div class="obj-icon"></div>
+      <div class="obj-title text-purple">Pompes</div>
+      <div class="obj-count" id="obj-pushups-count">0 <span>/ 100</span></div>
+      <div class="obj-progress-label">
+        <span id="obj-pushups-pct">0%</span>
+        <span id="obj-pushups-status" style="color:var(--text-muted)">En cours</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill progress-purple" id="obj-pushups-bar" style="width:0%"></div>
+      </div>
+    </div>
+    <div class="card" id="obj-abs-card" style="position:relative;">
+      <div class="obj-icon"></div>
+      <div class="obj-title text-cyan">Abdominaux</div>
+      <div class="obj-count" id="obj-abs-count">0 <span>/ 100</span></div>
+      <div class="obj-progress-label">
+        <span id="obj-abs-pct">0%</span>
+        <span id="obj-abs-status" style="color:var(--text-muted)">En cours</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill progress-cyan" id="obj-abs-bar" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QUICK ACTIONS -->
+  <div class="quick-actions">
+    <div class="quick-title">Actions Rapides</div>
+    <div class="quick-grid">
+
+      <!-- PUSHUPS -->
+      <div class="quick-card">
+        <div class="quick-card-header">
+          <span class="quick-card-icon"></span>
+          <span class="quick-card-title">Pompes</span>
+          <span class="quick-card-pts text-purple">+1 pt / pompe</span>
+        </div>
+        <div class="input-row">
+          <input type="number" id="add-pushups" min="1" max="500" value="10" placeholder="nb">
+          <button class="btn btn-primary btn-sm" onclick="handleAddPushups()">Ajouter</button>
+          <button class="btn btn-danger btn-xs" onclick="handleResetPushups()" title="Réinitialiser">✕</button>
+        </div>
+      </div>
+
+      <!-- ABS -->
+      <div class="quick-card">
+        <div class="quick-card-header">
+          <span class="quick-card-icon"></span>
+          <span class="quick-card-title">Abdominaux</span>
+          <span class="quick-card-pts text-cyan">+1 pt / abdo</span>
+        </div>
+        <div class="input-row">
+          <input type="number" id="add-abs" min="1" max="500" value="10" placeholder="nb">
+          <button class="btn btn-cyan btn-sm" onclick="handleAddAbs()">Ajouter</button>
+          <button class="btn btn-danger btn-xs" onclick="handleResetAbs()" title="Réinitialiser">✕</button>
+        </div>
+      </div>
+
+      <!-- PULLUPS -->
+      <div class="quick-card">
+        <div class="quick-card-header">
+          <span class="quick-card-icon"></span>
+          <span class="quick-card-title">Tractions</span>
+          <span class="quick-card-pts text-purple">+1 pt / traction</span>
+        </div>
+        <div class="input-row">
+          <input type="number" id="add-pullups" min="1" max="200" value="5" placeholder="nb">
+          <button class="btn btn-primary btn-sm" onclick="handleAddPullups()">Ajouter</button>
+        </div>
+      </div>
+
+      <!-- WEIGHT -->
+      <div class="quick-card">
+        <div class="quick-card-header">
+          <span class="quick-card-icon"></span>
+          <span class="quick-card-title">Soulever de Poids</span>
+          <span class="quick-card-pts text-gold">+1 pt / 10 kg</span>
+        </div>
+        <div class="input-row">
+          <input type="number" id="add-weight" min="1" max="1000" value="50" placeholder="kg">
+          <button class="btn btn-sm" style="background:linear-gradient(135deg,#92400e,var(--gold));color:white;" onclick="handleAddWeight()">Ajouter</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</main>
+
+<script src="db.js"></script>
+<script src="ui.js"></script>
+<script>
+if (!requireAuth()) {}
+
+function refreshUI() {
+  const user = getCurrentUser();
+  if (!user) return;
+
+  // Nav
+  document.getElementById('nav-name').textContent = user.displayName;
+  const nr = document.getElementById('nav-rank');
+  nr.textContent = user.rank;
+  nr.style.color = rankColor(user.rank);
+  nr.style.borderColor = rankColor(user.rank);
+
+  // Welcome
+  document.getElementById('welcome-name').textContent = user.displayName;
+  const now = new Date();
+  document.getElementById('today-date').textContent = `// ${now.toLocaleDateString('fr-FR', {weekday:'long', year:'numeric', month:'long', day:'numeric'})}`;
+
+  // Combo
+  document.getElementById('combo-val').textContent = parseFloat(user.combo).toFixed(2);
+
+  // Points
+  document.getElementById('points-val').textContent = user.points.toLocaleString();
+
+  // Rank badge
+  const rb = document.getElementById('rank-badge');
+  rb.textContent = user.rank;
+  rb.className = `rank-badge rank-${user.rank}`;
+  rb.style.cssText += '';
+
+  // Rank next info
+  const ranks = {E:300,D:800,C:2000,B:5000,A:10000,S:Infinity};
+  const needed = ranks[user.rank];
+  if (needed !== Infinity) {
+    document.getElementById('rank-next-info').textContent = `${needed - user.points} pts pour le rang ${Object.keys(ranks)[Object.keys(ranks).indexOf(user.rank)+1]}`;
+  } else {
+    document.getElementById('rank-next-info').textContent = 'Rang maximum atteint — LÉGENDAIRE';
+  }
+
+  // Today stats
+  document.getElementById('today-pushups').textContent = user.todayPushups;
+  document.getElementById('today-abs').textContent = user.todayAbs;
+  document.getElementById('today-pullups').textContent = user.todayPullups;
+  document.getElementById('today-weight').textContent = user.todayWeightKg;
+
+  // Objectives
+  const pPct = Math.min(100, Math.round((user.todayPushups / 100) * 100));
+  const aPct = Math.min(100, Math.round((user.todayAbs / 100) * 100));
+
+  document.getElementById('obj-pushups-count').innerHTML = `${user.todayPushups} <span>/ 100</span>`;
+  document.getElementById('obj-pushups-pct').textContent = pPct + '%';
+  document.getElementById('obj-pushups-bar').style.width = pPct + '%';
+  document.getElementById('obj-abs-count').innerHTML = `${user.todayAbs} <span>/ 100</span>`;
+  document.getElementById('obj-abs-pct').textContent = aPct + '%';
+  document.getElementById('obj-abs-bar').style.width = aPct + '%';
+
+  const pCard = document.getElementById('obj-pushups-card');
+  const aCard = document.getElementById('obj-abs-card');
+  const pStatus = document.getElementById('obj-pushups-status');
+  const aStatus = document.getElementById('obj-abs-status');
+
+  if (user.todayObjPushups) {
+    pCard.classList.add('completed');
+    pStatus.textContent = '✓ Complété';
+    pStatus.style.color = 'var(--green)';
+    if (!pCard.querySelector('.obj-done-overlay')) {
+      const d = document.createElement('div');
+      d.className = 'obj-done-overlay';
+      d.textContent = '✓';
+      pCard.appendChild(d);
+    }
+  }
+  if (user.todayObjAbs) {
+    aCard.classList.add('completed');
+    aStatus.textContent = '✓ Complété';
+    aStatus.style.color = 'var(--green)';
+    if (!aCard.querySelector('.obj-done-overlay')) {
+      const d = document.createElement('div');
+      d.className = 'obj-done-overlay';
+      d.textContent = '✓';
+      aCard.appendChild(d);
+    }
+  }
+}
+
+function handleAddPushups() {
+  const n = parseInt(document.getElementById('add-pushups').value) || 0;
+  if (n <= 0) return;
+  const prevBothDone = getCurrentUser()?.todayObjAbs;
+  const r = addPushups(n);
+  if (r && r.objCompleted) {
+    if (prevBothDone) toastBothObjComplete();
+    else toastObjComplete('pushups');
+  } else {
+    toastPushups(n);
+  }
+  refreshUI();
+}
+
+function handleResetPushups() {
+  const user = getCurrentUser();
+  if (!user || user.todayPushups === 0) return;
+  const total = user.todayPushups + (user.todayObjPushups ? 50 : 0);
+  if (!confirm(`Réinitialiser ${user.todayPushups} pompes ? -${total} points.`)) return;
+  resetPushups();
+  toastReset('pushups', total);
+  refreshUI();
+}
+
+function handleAddAbs() {
+  const n = parseInt(document.getElementById('add-abs').value) || 0;
+  if (n <= 0) return;
+  const prevBothDone = getCurrentUser()?.todayObjPushups;
+  const r = addAbs(n);
+  if (r && r.objCompleted) {
+    if (prevBothDone) toastBothObjComplete();
+    else toastObjComplete('abs');
+  } else {
+    toastAbs(n);
+  }
+  refreshUI();
+}
+
+function handleResetAbs() {
+  const user = getCurrentUser();
+  if (!user || user.todayAbs === 0) return;
+  const total = user.todayAbs + (user.todayObjAbs ? 50 : 0);
+  if (!confirm(`Réinitialiser ${user.todayAbs} abdos ? -${total} points.`)) return;
+  resetAbs();
+  toastReset('abs', total);
+  refreshUI();
+}
+
+function handleAddPullups() {
+  const n = parseInt(document.getElementById('add-pullups').value) || 0;
+  if (n <= 0) return;
+  addPullups(n);
+  toastPullups(n);
+  refreshUI();
+}
+
+function handleAddWeight() {
+  const kg = parseInt(document.getElementById('add-weight').value) || 0;
+  if (kg <= 0) return;
+  addWeight(kg);
+  toastWeight(kg);
+  refreshUI();
+}
+
+refreshUI();
+</script>
+<script>
+function toggleMenu() {
+  document.getElementById('hamburger').classList.toggle('open');
+  document.getElementById('mobile-menu').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  const menu = document.getElementById('mobile-menu');
+  const btn = document.getElementById('hamburger');
+  if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) {
+    menu.classList.remove('open'); btn.classList.remove('open');
+  }
+});
+</script>

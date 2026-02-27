@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mes Statistiques — SOLO TRAINING</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.page { padding: 2rem; max-width: 1200px; margin: 0 auto; }
+
+.page-title {
+  font-family: var(--font-display);
+  font-size: 2rem; font-weight: 900;
+  letter-spacing: 3px; text-transform: uppercase;
+  margin-bottom: 2rem;
+}
+
+/* RANK JOURNEY */
+.rank-journey {
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  margin-bottom: 2rem;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.rank-step {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  flex: 1;
+  min-width: 60px;
+}
+.rank-step-badge {
+  font-family: var(--font-display);
+  font-size: 1.4rem; font-weight: 900;
+  width: 48px; height: 48px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 6px;
+  border: 2px solid currentColor;
+  opacity: 0.4;
+  transition: all 0.3s;
+}
+.rank-step-badge.active { opacity: 1; box-shadow: 0 0 20px currentColor; }
+.rank-step-badge.achieved { opacity: 0.8; }
+.rank-step-pts { font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-muted); }
+.rank-connector { flex: 1; height: 2px; background: var(--border); min-width: 20px; align-self: center; margin-bottom: 20px; }
+.rank-connector.done { background: linear-gradient(90deg, var(--purple), var(--cyan)); }
+
+/* TOTAL STATS */
+.total-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem; margin-bottom: 2rem;
+}
+
+.total-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1.5rem;
+  display: flex; align-items: center; gap: 1rem;
+  transition: all 0.3s;
+}
+.total-card:hover { border-color: var(--border-glow); }
+
+.total-icon { font-size: 2rem; }
+.total-num {
+  font-family: var(--font-display);
+  font-size: 1.8rem; font-weight: 900;
+  line-height: 1;
+}
+.total-lbl { font-size: 0.75rem; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-muted); margin-top: 2px; }
+
+/* PERFORMANCE BARS */
+.perf-section { margin-bottom: 2rem; }
+.perf-bar-row { margin-bottom: 1rem; }
+.perf-bar-header { display: flex; justify-content: space-between; font-size: 0.85rem; font-family: var(--font-mono); margin-bottom: 6px; }
+
+/* CALENDAR HEATMAP */
+.heatmap-section { margin-bottom: 2rem; }
+.heatmap-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  max-width: 400px;
+}
+.heat-cell {
+  aspect-ratio: 1; border-radius: 3px;
+  background: rgba(26,26,78,0.5);
+  transition: all 0.2s;
+  cursor: default;
+  position: relative;
+}
+.heat-cell.success { background: rgba(34,197,94,0.5); }
+.heat-cell.partial { background: rgba(245,158,11,0.4); }
+.heat-cell.missed { background: rgba(239,68,68,0.3); }
+.heat-cell.empty { background: transparent; }
+.heat-cell:hover::after {
+  content: attr(data-tip);
+  position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%);
+  background: var(--bg-panel); border: 1px solid var(--border);
+  color: var(--text-primary); font-family: var(--font-mono); font-size: 0.7rem;
+  padding: 4px 8px; border-radius: 4px; white-space: nowrap; z-index: 10;
+}
+
+/* HISTORY TABLE */
+.history-section { margin-bottom: 2rem; }
+.history-empty { text-align:center; color:var(--text-muted); font-family:var(--font-mono); padding:2rem; font-size:0.85rem; }
+
+.badge-small {
+  display: inline-block; padding: 2px 8px; border-radius: 20px;
+  font-size: 0.7rem; font-weight: 700; font-family: var(--font-display); letter-spacing: 1px;
+}
+.badge-green { background: rgba(34,197,94,0.15); color: var(--green); border:1px solid rgba(34,197,94,0.3); }
+.badge-red { background: rgba(239,68,68,0.15); color: var(--red); border:1px solid rgba(239,68,68,0.3); }
+.badge-orange { background: rgba(245,158,11,0.15); color: var(--gold); border:1px solid rgba(245,158,11,0.3); }
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="bg-glow-top"></div>
+<div class="bg-glow-bottom"></div>
+
+<nav class="nav">
+  <a href="home.html" class="nav-logo">
+    <div class="logo-icon hexagon">S</div>
+    SOLO TRAINING
+  </a>
+  <div class="nav-links">
+    <a href="home.html" class="nav-link">Accueil</a>
+    <a href="objectives.html" class="nav-link">Objectifs</a>
+    <a href="statistics.html" class="nav-link active">Statistiques</a>
+  </div>
+  <div class="nav-user">
+    <span class="nav-rank" id="nav-rank">E</span>
+    <span style="font-family:var(--font-ui);font-size:0.9rem;color:var(--text-secondary)" id="nav-name">—</span>
+    <button class="btn-logout" onclick="logout()">Déco</button>
+  </div>
+  <button class="nav-hamburger" id="hamburger" onclick="toggleMenu()" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+<div class="nav-mobile-menu" id="mobile-menu">
+  <a href="home.html" class="nav-link">Accueil</a>
+  <a href="objectives.html" class="nav-link">Objectifs</a>
+  <a href="statistics.html" class="nav-link active">Statistiques</a>
+  <div style="height:1px;background:var(--border);margin:6px 0;"></div>
+  <button class="btn-logout" style="width:100%;text-align:left;padding:12px 16px;" onclick="logout()">Se déconnecter</button>
+</div>
+
+<main class="main-content">
+<div class="page">
+
+  <div class="section-title">Progression</div>
+  <div class="page-title">Mes <span class="text-cyan">Statistiques</span></div>
+
+  <!-- RANK JOURNEY -->
+  <div class="rank-journey" id="rank-journey"></div>
+
+  <!-- TOTAL STATS -->
+  <div class="total-grid">
+    <div class="total-card">
+      <span class="total-icon"></span>
+      <div>
+        <div class="total-num text-purple" id="tot-pushups">0</div>
+        <div class="total-lbl">Pompes Total</div>
+      </div>
+    </div>
+    <div class="total-card">
+      <span class="total-icon"></span>
+      <div>
+        <div class="total-num text-cyan" id="tot-abs">0</div>
+        <div class="total-lbl">Abdos Total</div>
+      </div>
+    </div>
+    <div class="total-card">
+      <span class="total-icon"></span>
+      <div>
+        <div class="total-num text-purple" id="tot-pullups">0</div>
+        <div class="total-lbl">Tractions Total</div>
+      </div>
+    </div>
+    <div class="total-card">
+      <span class="total-icon"></span>
+      <div>
+        <div class="total-num text-gold" id="tot-weight">0 kg</div>
+        <div class="total-lbl">Poids Soulevé</div>
+      </div>
+    </div>
+    <div class="total-card">
+      <span class="total-icon"></span>
+      <div>
+        <div class="total-num text-green" id="tot-days-done">0</div>
+        <div class="total-lbl">Jours Complétés</div>
+      </div>
+    </div>
+    <div class="total-card">
+      <span class="total-icon"></span>
+      <div>
+        <div class="total-num text-red" id="tot-days-missed">0</div>
+        <div class="total-lbl">Jours Manqués</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PERFORMANCE BARS -->
+  <div class="card perf-section">
+    <div class="section-title" style="margin-bottom:1.2rem">Performance</div>
+    <div class="perf-bar-row">
+      <div class="perf-bar-header">
+        <span> Pompes aujourd'hui</span>
+        <span id="perf-pushups-v">0 / 100</span>
+      </div>
+      <div class="progress-bar" style="height:10px">
+        <div class="progress-fill progress-purple" id="perf-pushups-bar" style="width:0%"></div>
+      </div>
+    </div>
+    <div class="perf-bar-row" style="margin-top:1rem">
+      <div class="perf-bar-header">
+        <span> Abdos aujourd'hui</span>
+        <span id="perf-abs-v">0 / 100</span>
+      </div>
+      <div class="progress-bar" style="height:10px">
+        <div class="progress-fill progress-cyan" id="perf-abs-bar" style="width:0%"></div>
+      </div>
+    </div>
+    <div class="perf-bar-row" style="margin-top:1rem">
+      <div class="perf-bar-header">
+        <span> Taux de succès global</span>
+        <span id="perf-rate-v">0%</span>
+      </div>
+      <div class="progress-bar" style="height:10px">
+        <div class="progress-fill progress-gold" id="perf-rate-bar" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HEATMAP -->
+  <div class="card heatmap-section">
+    <div class="section-title" style="margin-bottom:0.5rem">Activité Récente</div>
+    <div style="display:flex;gap:1rem;font-size:0.75rem;color:var(--text-muted);font-family:var(--font-mono);margin-bottom:1rem;flex-wrap:wrap;">
+      <span><span style="display:inline-block;width:12px;height:12px;border-radius:2px;background:rgba(34,197,94,0.5);vertical-align:middle;margin-right:4px;"></span>Complet</span>
+      <span><span style="display:inline-block;width:12px;height:12px;border-radius:2px;background:rgba(245,158,11,0.4);vertical-align:middle;margin-right:4px;"></span>Partiel</span>
+      <span><span style="display:inline-block;width:12px;height:12px;border-radius:2px;background:rgba(239,68,68,0.3);vertical-align:middle;margin-right:4px;"></span>Manqué</span>
+    </div>
+    <div class="heatmap-grid" id="heatmap"></div>
+  </div>
+
+  <!-- HISTORY TABLE -->
+  <div class="card history-section">
+    <div class="section-title" style="margin-bottom:1rem">Historique</div>
+    <div id="history-content">
+      <div class="history-empty">Aucun historique encore. Reviens demain pour voir tes entrées !</div>
+    </div>
+  </div>
+
+</div>
+</main>
+
+<script src="db.js"></script>
+<script src="ui.js"></script>
+<script>
+if (!requireAuth()) {}
+
+function renderRankJourney(user) {
+  const container = document.getElementById('rank-journey');
+  const ranks = [
+    {r:'E', pts:0, next:300},
+    {r:'D', pts:300, next:800},
+    {r:'C', pts:800, next:2000},
+    {r:'B', pts:2000, next:5000},
+    {r:'A', pts:5000, next:10000},
+    {r:'S', pts:10000, next:Infinity}
+  ];
+  const currentRankIdx = ranks.findIndex(x => x.r === user.rank);
+  let html = '';
+  ranks.forEach((rk, i) => {
+    const achieved = user.points >= rk.pts;
+    const isActive = rk.r === user.rank;
+    const colors = {E:'var(--rank-e)',D:'var(--rank-d)',C:'var(--rank-c)',B:'var(--rank-b)',A:'var(--rank-a)',S:'var(--rank-s)'};
+    html += `<div class="rank-step">
+      <div class="rank-step-badge ${isActive?'active':''}${achieved&&!isActive?' achieved':''}" style="color:${colors[rk.r]};border-color:${colors[rk.r]}">${rk.r}</div>
+      <div class="rank-step-pts">${rk.pts >= 10000 ? '10K' : rk.pts}</div>
+    </div>`;
+    if (i < ranks.length - 1) {
+      html += `<div class="rank-connector ${achieved ? 'done' : ''}"></div>`;
+    }
+  });
+  container.innerHTML = html;
+}
+
+function renderHeatmap(history) {
+  const hm = document.getElementById('heatmap');
+  // Build map of date -> status
+  const map = {};
+  history.forEach(h => {
+    if (h.objPushups && h.objAbs) map[h.date] = 'success';
+    else if (h.objPushups || h.objAbs) map[h.date] = 'partial';
+    else map[h.date] = 'missed';
+  });
+
+  // Last 28 days
+  const today = new Date();
+  const cells = [];
+  for (let i = 27; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const ds = d.toISOString().split('T')[0];
+    cells.push({date: ds, status: map[ds] || (i === 0 ? 'today' : 'empty')});
+  }
+
+  hm.innerHTML = cells.map(c => {
+    const cls = c.status === 'today' ? 'heat-cell' : `heat-cell ${c.status}`;
+    return `<div class="${cls}" data-tip="${c.date}: ${c.status==='success'?'Complet':c.status==='partial'?'Partiel':c.status==='missed'?'Manqué':'Aucune donnée'}"></div>`;
+  }).join('');
+}
+
+function renderHistory(history) {
+  const cont = document.getElementById('history-content');
+  if (!history || history.length === 0) {
+    cont.innerHTML = '<div class="history-empty">Aucun historique encore. Continue à t\'entraîner !</div>';
+    return;
+  }
+
+  const sorted = [...history].sort((a,b) => b.date.localeCompare(a.date)).slice(0, 30);
+  cont.innerHTML = `<div style="overflow-x:auto"><table class="data-table">
+    <thead><tr>
+      <th>Date</th>
+      <th>Pompes</th>
+      <th>Abdos</th>
+      <th>Tractions</th>
+      <th>Poids</th>
+      <th>Statut</th>
+      <th>Points</th>
+    </tr></thead>
+    <tbody>
+    ${sorted.map(h => {
+      let status = '';
+      if (h.objPushups && h.objAbs) status = '<span class="badge-small badge-green">COMPLET</span>';
+      else if (h.objPushups || h.objAbs) status = '<span class="badge-small badge-orange">PARTIEL</span>';
+      else status = '<span class="badge-small badge-red">MANQUÉ</span>';
+      const pts = h.pointsDelta > 0 ? `<span style="color:var(--green)">+${h.pointsDelta}</span>` : `<span style="color:var(--red)">${h.pointsDelta}</span>`;
+      return `<tr>
+        <td style="color:var(--text-secondary)">${h.date}</td>
+        <td>${h.pushups || 0}</td>
+        <td>${h.abs || 0}</td>
+        <td>${h.pullups || 0}</td>
+        <td>${h.weightKg || 0} kg</td>
+        <td>${status}</td>
+        <td>${pts}</td>
+      </tr>`;
+    }).join('')}
+    </tbody>
+  </table></div>`;
+}
+
+function refreshUI() {
+  const user = getCurrentUser();
+  if (!user) return;
+
+  // Nav
+  document.getElementById('nav-name').textContent = user.displayName;
+  const nr = document.getElementById('nav-rank');
+  nr.textContent = user.rank;
+  nr.style.color = rankColor(user.rank);
+  nr.style.borderColor = rankColor(user.rank);
+
+  renderRankJourney(user);
+
+  // Totals
+  document.getElementById('tot-pushups').textContent = (user.totalPushups||0).toLocaleString();
+  document.getElementById('tot-abs').textContent = (user.totalAbs||0).toLocaleString();
+  document.getElementById('tot-pullups').textContent = (user.totalPullups||0).toLocaleString();
+  document.getElementById('tot-weight').textContent = (user.totalWeightKg||0) + ' kg';
+  document.getElementById('tot-days-done').textContent = user.totalDaysCompleted || 0;
+  document.getElementById('tot-days-missed').textContent = user.totalDaysMissed || 0;
+
+  // Performance bars
+  const pPct = Math.min(100, Math.round((user.todayPushups/100)*100));
+  const aPct = Math.min(100, Math.round((user.todayAbs/100)*100));
+  document.getElementById('perf-pushups-v').textContent = `${user.todayPushups} / 100`;
+  document.getElementById('perf-pushups-bar').style.width = pPct + '%';
+  document.getElementById('perf-abs-v').textContent = `${user.todayAbs} / 100`;
+  document.getElementById('perf-abs-bar').style.width = aPct + '%';
+
+  const totalDays = (user.totalDaysCompleted||0) + (user.totalDaysMissed||0);
+  const rate = totalDays > 0 ? Math.round((user.totalDaysCompleted/totalDays)*100) : 0;
+  document.getElementById('perf-rate-v').textContent = rate + '%';
+  document.getElementById('perf-rate-bar').style.width = rate + '%';
+
+  // Heatmap
+  renderHeatmap(user.history || []);
+
+  // History
+  renderHistory(user.history || []);
+}
+
+refreshUI();
+</script>
+<script>
+function toggleMenu() {
+  document.getElementById('hamburger').classList.toggle('open');
+  document.getElementById('mobile-menu').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  const menu = document.getElementById('mobile-menu');
+  const btn = document.getElementById('hamburger');
+  if (menu && btn && !menu.contains(e.target) && !btn.contains(e.target)) {
+    menu.classList.remove('open'); btn.classList.remove('open');
+  }
+});
+</script>
+</body>
+</html>
