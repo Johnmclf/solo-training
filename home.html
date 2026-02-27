@@ -352,7 +352,7 @@ function refreshUI() {
   rb.style.cssText += '';
 
   // Rank next info
-  const ranks = {E:300,D:800,C:2000,B:5000,A:10000,S:Infinity};
+  const ranks = {E:1000,D:10000,C:100000,B:1000000,A:10000000,S:Infinity};
   const needed = ranks[user.rank];
   if (needed !== Infinity) {
     document.getElementById('rank-next-info').textContent = `${needed - user.points} pts pour le rang ${Object.keys(ranks)[Object.keys(ranks).indexOf(user.rank)+1]}`;

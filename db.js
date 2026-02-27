@@ -282,11 +282,11 @@ function addDays(dateStr, n) {
 }
 
 function calcRank(points) {
-  if (points >= 10000) return 'S';
-  if (points >= 5000) return 'A';
-  if (points >= 2000) return 'B';
-  if (points >= 800) return 'C';
-  if (points >= 300) return 'D';
+  if (points >= 10000000) return 'S';
+  if (points >= 1000000) return 'A';
+  if (points >= 100000) return 'B';
+  if (points >= 10000) return 'C';
+  if (points >= 1000) return 'D';
   return 'E';
 }
 

@@ -259,12 +259,12 @@ if (!requireAuth()) {}
 function renderRankJourney(user) {
   const container = document.getElementById('rank-journey');
   const ranks = [
-    {r:'E', pts:0, next:300},
-    {r:'D', pts:300, next:800},
-    {r:'C', pts:800, next:2000},
-    {r:'B', pts:2000, next:5000},
-    {r:'A', pts:5000, next:10000},
-    {r:'S', pts:10000, next:Infinity}
+    {r:'E', pts:0, next:1000},
+    {r:'D', pts:1000, next:10000},
+    {r:'C', pts:10000, next:100000},
+    {r:'B', pts:100000, next:1000000},
+    {r:'A', pts:1000000, next:10000000},
+    {r:'S', pts:10000000, next:Infinity}
   ];
   const currentRankIdx = ranks.findIndex(x => x.r === user.rank);
   let html = '';
