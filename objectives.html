@@ -299,18 +299,18 @@ function handlePushups() {
   if(r&&r.objCompleted) {
     if(prevBothDone) toastBothObjComplete();
     else toastObjComplete('pushups');
-  } else { toastPushups(n); }
+  } else { showToast('info', 'Entraînement enregistré', `${n} pompe${n>1?'s':''} exécutée${n>1?'s':''}`, `+${r.ptsEarned} PTS`); }
   refreshUI();
 }
 
 async function handleResetPushups() {
   const user = getCurrentUser();
   if(!user||user.todayPushups===0) { showToast('warning','Rien à réinitialiser','Aucune pompe enregistrée aujourd\'hui'); return; }
-  const total = user.todayPushups + (user.todayObjPushups ? 50 : 0);
-  const ok = await showConfirm('Réinitialiser les pompes ?', `${user.todayPushups} pompes supprimées`, `-${total} PTS DÉDUITS`);
+  const pts = parseFloat((user.todayPushupsPoints || 0).toFixed(2));
+  const ok = await showConfirm('Réinitialiser les pompes ?', `${user.todayPushups} pompes supprimées`, `-${pts} PTS DÉDUITS`);
   if(!ok) return;
   resetPushups();
-  toastReset('pushups', total);
+  toastReset('pushups', pts);
   refreshUI();
 }
 
@@ -322,18 +322,18 @@ function handleAbs() {
   if(r&&r.objCompleted) {
     if(prevBothDone) toastBothObjComplete();
     else toastObjComplete('abs');
-  } else { toastAbs(n); }
+  } else { showToast('info', 'Entraînement enregistré', `${n} abdo${n>1?'s':''} exécuté${n>1?'s':''}`, `+${r.ptsEarned} PTS`); }
   refreshUI();
 }
 
 async function handleResetAbs() {
   const user = getCurrentUser();
   if(!user||user.todayAbs===0) { showToast('warning','Rien à réinitialiser','Aucun abdo enregistré aujourd\'hui'); return; }
-  const total = user.todayAbs + (user.todayObjAbs ? 50 : 0);
-  const ok = await showConfirm('Réinitialiser les abdos ?', `${user.todayAbs} abdos supprimés`, `-${total} PTS DÉDUITS`);
+  const pts = parseFloat((user.todayAbsPoints || 0).toFixed(2));
+  const ok = await showConfirm('Réinitialiser les abdos ?', `${user.todayAbs} abdos supprimés`, `-${pts} PTS DÉDUITS`);
   if(!ok) return;
   resetAbs();
-  toastReset('abs', total);
+  toastReset('abs', pts);
   refreshUI();
 }
 

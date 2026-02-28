@@ -56,6 +56,10 @@ function register(username, password, displayName) {
     todayObjPushups: false,
     todayObjAbs: false,
     todayDate: today,
+    todayPushupsPoints: 0,
+    todayAbsPoints: 0,
+    todayPullupsPoints: 0,
+    todayWeightPoints: 0,
     // History
     history: [],
     totalPushups: 0,
@@ -138,6 +142,10 @@ function login(username, password) {
     user.todayWeightKg = 0;
     user.todayObjPushups = false;
     user.todayObjAbs = false;
+    user.todayPushupsPoints = 0;
+    user.todayAbsPoints = 0;
+    user.todayPullupsPoints = 0;
+    user.todayWeightPoints = 0;
     user.todayDate = today;
     user.lastLogin = today;
   } else {
@@ -171,43 +179,59 @@ function logout() {
 function addPushups(count) {
   const user = getCurrentUser();
   if (!user) return;
+
+  let ptsEarned = 0;
   const prev = user.todayPushups;
+  let objCompleted = false;
+
+  if (!user.todayObjPushups) {
+    // Pushups before reaching objective (100)
+    const toObj = Math.max(0, 100 - prev);
+    const beforeObj = Math.min(count, toObj);
+    const afterObj = count - beforeObj;
+
+    ptsEarned += parseFloat((beforeObj * user.combo).toFixed(2));
+
+    if (prev + count >= 100) {
+      // Objective reached mid-batch
+      objCompleted = true;
+      user.todayObjPushups = true;
+      ptsEarned += 50;
+      user.combo = parseFloat((user.combo + 0.05).toFixed(2));
+      if (user.todayObjAbs) user.totalDaysCompleted++;
+      // Remaining pushups after 100 at new combo
+      ptsEarned += parseFloat((afterObj * user.combo).toFixed(2));
+    }
+  } else {
+    // Objective already done, all at current combo
+    ptsEarned += parseFloat((count * user.combo).toFixed(2));
+  }
+
   user.todayPushups += count;
   user.totalPushups += count;
-  user.points += count; // 1 point per pushup
+  user.points = parseFloat((user.points + ptsEarned).toFixed(2));
+  user.todayPushupsPoints = parseFloat(((user.todayPushupsPoints || 0) + ptsEarned).toFixed(2));
 
-  // Check objective
-  if (!user.todayObjPushups && user.todayPushups >= 100) {
-    user.todayObjPushups = true;
-    user.points += 50;
-    user.combo = parseFloat((user.combo + 0.05).toFixed(2));
-    // Check if both done
-    if (user.todayObjAbs) {
-      user.totalDaysCompleted++;
-    }
-    user.rank = calcRank(user.points);
-  saveCurrentUser(user);
-    return { objCompleted: true, msg: 'Objectif Pompes complété ! +50 pts, combo +0.05' };
-  }
   user.rank = calcRank(user.points);
   saveCurrentUser(user);
-  return { objCompleted: false };
+  return { objCompleted, ptsEarned };
 }
 
 function resetPushups() {
   const user = getCurrentUser();
   if (!user) return;
-  const pts = user.todayPushups;
-  user.points = Math.max(0, user.points - pts);
-  user.totalPushups = Math.max(0, user.totalPushups - pts);
-  // If objective was completed, remove bonus
+
+  const ptsToRemove = user.todayPushupsPoints || 0;
+  user.points = parseFloat(Math.max(0, user.points - ptsToRemove).toFixed(2));
+  user.totalPushups = Math.max(0, user.totalPushups - user.todayPushups);
+
   if (user.todayObjPushups) {
-    user.points = Math.max(0, user.points - 50);
     user.combo = Math.max(1.0, parseFloat((user.combo - 0.05).toFixed(2)));
     user.todayObjPushups = false;
   }
+
   user.todayPushups = 0;
-  user.rank = calcRank(user.points);
+  user.todayPushupsPoints = 0;
   user.rank = calcRank(user.points);
   saveCurrentUser(user);
 }
@@ -215,39 +239,55 @@ function resetPushups() {
 function addAbs(count) {
   const user = getCurrentUser();
   if (!user) return;
+
+  let ptsEarned = 0;
+  const prev = user.todayAbs;
+  let objCompleted = false;
+
+  if (!user.todayObjAbs) {
+    const toObj = Math.max(0, 100 - prev);
+    const beforeObj = Math.min(count, toObj);
+    const afterObj = count - beforeObj;
+
+    ptsEarned += parseFloat((beforeObj * user.combo).toFixed(2));
+
+    if (prev + count >= 100) {
+      objCompleted = true;
+      user.todayObjAbs = true;
+      ptsEarned += 50;
+      user.combo = parseFloat((user.combo + 0.05).toFixed(2));
+      if (user.todayObjPushups) user.totalDaysCompleted++;
+      ptsEarned += parseFloat((afterObj * user.combo).toFixed(2));
+    }
+  } else {
+    ptsEarned += parseFloat((count * user.combo).toFixed(2));
+  }
+
   user.todayAbs += count;
   user.totalAbs += count;
-  user.points += count;
+  user.points = parseFloat((user.points + ptsEarned).toFixed(2));
+  user.todayAbsPoints = parseFloat(((user.todayAbsPoints || 0) + ptsEarned).toFixed(2));
 
-  if (!user.todayObjAbs && user.todayAbs >= 100) {
-    user.todayObjAbs = true;
-    user.points += 50;
-    user.combo = parseFloat((user.combo + 0.05).toFixed(2));
-    if (user.todayObjPushups) {
-      user.totalDaysCompleted++;
-    }
-    user.rank = calcRank(user.points);
-  saveCurrentUser(user);
-    return { objCompleted: true, msg: 'Objectif Abdos complété ! +50 pts, combo +0.05' };
-  }
   user.rank = calcRank(user.points);
   saveCurrentUser(user);
-  return { objCompleted: false };
+  return { objCompleted, ptsEarned };
 }
 
 function resetAbs() {
   const user = getCurrentUser();
   if (!user) return;
-  const pts = user.todayAbs;
-  user.points = Math.max(0, user.points - pts);
-  user.totalAbs = Math.max(0, user.totalAbs - pts);
+
+  const ptsToRemove = user.todayAbsPoints || 0;
+  user.points = parseFloat(Math.max(0, user.points - ptsToRemove).toFixed(2));
+  user.totalAbs = Math.max(0, user.totalAbs - user.todayAbs);
+
   if (user.todayObjAbs) {
-    user.points = Math.max(0, user.points - 50);
     user.combo = Math.max(1.0, parseFloat((user.combo - 0.05).toFixed(2)));
     user.todayObjAbs = false;
   }
+
   user.todayAbs = 0;
-  user.rank = calcRank(user.points);
+  user.todayAbsPoints = 0;
   user.rank = calcRank(user.points);
   saveCurrentUser(user);
 }
@@ -255,9 +295,11 @@ function resetAbs() {
 function addPullups(count) {
   const user = getCurrentUser();
   if (!user) return;
+  const ptsEarned = parseFloat((count * user.combo).toFixed(2));
   user.todayPullups += count;
   user.totalPullups += count;
-  user.points += count;
+  user.points = parseFloat((user.points + ptsEarned).toFixed(2));
+  user.todayPullupsPoints = parseFloat(((user.todayPullupsPoints || 0) + ptsEarned).toFixed(2));
   user.rank = calcRank(user.points);
   saveCurrentUser(user);
 }
@@ -265,9 +307,11 @@ function addPullups(count) {
 function addWeight(kg) {
   const user = getCurrentUser();
   if (!user) return;
+  const ptsEarned = parseFloat((Math.floor(kg / 10) * user.combo).toFixed(2));
   user.todayWeightKg += kg;
   user.totalWeightKg += kg;
-  user.points += Math.floor(kg / 10);
+  user.points = parseFloat((user.points + ptsEarned).toFixed(2));
+  user.todayWeightPoints = parseFloat(((user.todayWeightPoints || 0) + ptsEarned).toFixed(2));
   user.rank = calcRank(user.points);
   saveCurrentUser(user);
 }
@@ -275,11 +319,11 @@ function addWeight(kg) {
 function resetPullups() {
   const user = getCurrentUser();
   if (!user) return;
-  const pts = user.todayPullups;
-  user.points = Math.max(0, user.points - pts);
-  user.totalPullups = Math.max(0, user.totalPullups - pts);
+  const ptsToRemove = user.todayPullupsPoints || 0;
+  user.points = parseFloat(Math.max(0, user.points - ptsToRemove).toFixed(2));
+  user.totalPullups = Math.max(0, user.totalPullups - user.todayPullups);
   user.todayPullups = 0;
-  user.rank = calcRank(user.points);
+  user.todayPullupsPoints = 0;
   user.rank = calcRank(user.points);
   saveCurrentUser(user);
 }
@@ -287,11 +331,11 @@ function resetPullups() {
 function resetWeight() {
   const user = getCurrentUser();
   if (!user) return;
-  const pts = Math.floor(user.todayWeightKg / 10);
-  user.points = Math.max(0, user.points - pts);
+  const ptsToRemove = user.todayWeightPoints || 0;
+  user.points = parseFloat(Math.max(0, user.points - ptsToRemove).toFixed(2));
   user.totalWeightKg = Math.max(0, user.totalWeightKg - user.todayWeightKg);
   user.todayWeightKg = 0;
-  user.rank = calcRank(user.points);
+  user.todayWeightPoints = 0;
   user.rank = calcRank(user.points);
   saveCurrentUser(user);
 }

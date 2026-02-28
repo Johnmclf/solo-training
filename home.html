@@ -418,7 +418,7 @@ function handleAddPushups() {
     if (prevBothDone) toastBothObjComplete();
     else toastObjComplete('pushups');
   } else {
-    toastPushups(n);
+    showToast('info', 'Entraînement enregistré', `${n} pompe${n>1?'s':''} exécutée${n>1?'s':''}`, `+${r.ptsEarned} PTS`);
   }
   refreshUI();
 }
@@ -426,11 +426,11 @@ function handleAddPushups() {
 async function handleResetPushups() {
   const user = getCurrentUser();
   if (!user || user.todayPushups === 0) return;
-  const total = user.todayPushups + (user.todayObjPushups ? 50 : 0);
-  const ok = await showConfirm('Réinitialiser les pompes ?', `${user.todayPushups} pompes supprimées`, `-${total} PTS DÉDUITS`);
+  const pts = parseFloat((user.todayPushupsPoints || 0).toFixed(2));
+  const ok = await showConfirm('Réinitialiser les pompes ?', `${user.todayPushups} pompes supprimées`, `-${pts} PTS DÉDUITS`);
   if (!ok) return;
   resetPushups();
-  toastReset('pushups', total);
+  toastReset('pushups', pts);
   refreshUI();
 }
 
@@ -443,7 +443,7 @@ function handleAddAbs() {
     if (prevBothDone) toastBothObjComplete();
     else toastObjComplete('abs');
   } else {
-    toastAbs(n);
+    showToast('info', 'Entraînement enregistré', `${n} abdo${n>1?'s':''} exécuté${n>1?'s':''}`, `+${r.ptsEarned} PTS`);
   }
   refreshUI();
 }
@@ -451,11 +451,11 @@ function handleAddAbs() {
 async function handleResetAbs() {
   const user = getCurrentUser();
   if (!user || user.todayAbs === 0) return;
-  const total = user.todayAbs + (user.todayObjAbs ? 50 : 0);
-  const ok = await showConfirm('Réinitialiser les abdos ?', `${user.todayAbs} abdos supprimés`, `-${total} PTS DÉDUITS`);
+  const pts = parseFloat((user.todayAbsPoints || 0).toFixed(2));
+  const ok = await showConfirm('Réinitialiser les abdos ?', `${user.todayAbs} abdos supprimés`, `-${pts} PTS DÉDUITS`);
   if (!ok) return;
   resetAbs();
-  toastReset('abs', total);
+  toastReset('abs', pts);
   refreshUI();
 }
 
@@ -470,8 +470,8 @@ function handleAddPullups() {
 async function handleResetPullups() {
   const user = getCurrentUser();
   if (!user || user.todayPullups === 0) return;
-  const pts = user.todayPullups;
-  const ok = await showConfirm('Réinitialiser les tractions ?', `${pts} tractions supprimées`, `-${pts} PTS DÉDUITS`);
+  const pts = parseFloat((user.todayPullupsPoints || 0).toFixed(2));
+  const ok = await showConfirm('Réinitialiser les tractions ?', `${user.todayPullups} tractions supprimées`, `-${pts} PTS DÉDUITS`);
   if (!ok) return;
   resetPullups();
   showToast('warning', 'Tractions réinitialisées', 'Compteur remis à zéro', `-${pts} PTS DÉDUITS`);
@@ -489,7 +489,7 @@ function handleAddWeight() {
 async function handleResetWeight() {
   const user = getCurrentUser();
   if (!user || user.todayWeightKg === 0) return;
-  const pts = Math.floor(user.todayWeightKg / 10);
+  const pts = parseFloat((user.todayWeightPoints || 0).toFixed(2));
   const ok = await showConfirm('Réinitialiser le poids soulevé ?', `${user.todayWeightKg} kg supprimés`, pts > 0 ? `-${pts} PTS DÉDUITS` : '');
   if (!ok) return;
   resetWeight();
